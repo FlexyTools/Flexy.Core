@@ -45,6 +45,8 @@ namespace Flexy.Core
 		private readonly			List<Object>					_registeredServicesList	= new ( );
 		
 		public static	GameContext		Global					=> _global.OrNull( ) ?? (_global = CreateGlobalContext());
+
+		public			GameContext		ParentContext			=> _parent;
 			
 		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene );//go.TryGetComponent<GameContext>( out var selfCtx ) ? selfCtx : go.transform.root.TryGetComponent<GameContext>( out var rootCtx ) ? rootCtx : GetCtx( go.scene );
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
@@ -186,12 +188,12 @@ namespace Flexy.Core
 					SetService( service );
 			}
 		}
-		public			T				GetService<T>			( )						where T : class 			
+		public			T				GetService<T>			( Boolean searchHierarchy = true )						where T : class 			
 		{
 			if( _registeredServicesDict.TryGetValue( typeof(T), out var svc ) )
 				return svc as T;
 
-			if( _parent )
+			if( _parent && searchHierarchy )
 				return _parent.GetService<T>( );
 			
 			return default;
@@ -416,7 +418,14 @@ namespace Flexy.Core
 			}
 			static void DrawCtx( GameContext ctx )
 			{
+				//Header
+				GUILayout.BeginHorizontal(  );
 				GUILayout.Label(ctx.Name);
+				GUILayout.FlexibleSpace();
+				if( GUILayout.Button( "?" ))
+				   UnityEditor.EditorGUIUtility.PingObject( ctx );
+				GUILayout.EndHorizontal( );
+
 				GUILayout.BeginHorizontal();
 				{
 					GUILayout.Space(20);
