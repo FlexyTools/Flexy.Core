@@ -234,8 +234,19 @@ namespace Flexy.Core.Editor
                 copy.Next(true);
 				var path = copy.propertyPath;
 				
-				componentElement.Add( new IMGUIContainer( () => CompoenntHeaderIMGUI(index, comp, isComponentBased, noMainComponent, isOneComponent ) ){ name = "Header" } );
-				componentElement.Add( new PropertyField(comp, "") { name = "PropertyDrawer:" + comp.propertyPath } );
+				componentElement.Add( new IMGUIContainer( () => CompoenntHeaderIMGUI(index, comp, isComponentBased, noMainComponent, isOneComponent ) ){ name = "Header", style = { marginLeft = -6, marginRight = -8 }} );
+				
+				var properties = new PropertyField(comp, "") { name = "PropertyDrawer:" + comp.propertyPath };
+
+				if( index != 0 || noMainComponent )
+				{
+					properties.style.borderLeftColor = (Color)new Color32(25, 25, 25, 255);
+					properties.style.borderLeftWidth = 1;
+					properties.style.paddingTop = 2;
+					properties.style.paddingLeft = 5;
+				}
+				
+				componentElement.Add( properties );
 					
 				// for ( var enterChildren = true; comp.NextVisible( enterChildren ); enterChildren = false )
 				// {
@@ -387,13 +398,10 @@ namespace Flexy.Core.Editor
 			if( !String.IsNullOrWhiteSpace( preferredLabel ) )
 				propsVE.Add( new Label(preferredLabel) );
 		
-			copy.NextVisible( true );
-			var depth = copy.depth;
-			do
-			{
+			var depth = copy.depth + 1;
+			
+			for ( var enterChildren = true; copy.NextVisible( enterChildren ) && copy.depth >= depth; enterChildren = false )
 				propsVE.Add( new PropertyField(copy) );
-			}
-			while ( copy.NextVisible( false ) && copy.depth >= depth );
 		
 			return propsVE;
 		}
