@@ -1,4 +1,6 @@
-﻿namespace Flexy.Core
+﻿using Flexy.Utils.Pooling;
+
+namespace Flexy.Core
 {
 	[Serializable]
 	public struct FlexyMsg
@@ -12,25 +14,61 @@
 	[Serializable]
 	public struct FlexyEvent
 	{
-		// Make it event that raise all subscribers surrounded with try catch
-		// Create CodeSubscribersAction and excapsulate action in case of subscribe call from code
-		
 		[SerializeReference] FlexyAction	_action;
 		
 		public UniTask Raise( Component ctxObj ) => _action.Raise( ctxObj );
 		
-		public event Action Fired
+		public event Action<ActionCtx> Raised
 		{
-			add{}
-			remove{}
+			add
+			{
+				if( _action is not FlexyActionCodeCallbacks c )
+				{
+					c = new( );
+					c.SetNext( _action );
+					_action = c;
+				}
+				
+				c.Raised += value;
+			}
+			remove
+			{
+				if( _action is FlexyActionCodeCallbacks c )
+					c.Raised -= value;
+			}
 		}
-		public event Action<ActionCtx> FiredCtx
+	}
+	
+	[Serializable]
+	public class FlexyActionCodeCallbacks : FlexyActionSync
+	{
+		[SerializeReference] FlexyAction _next;
+		
+		private List<Action<ActionCtx>>	_callbacks;
+		
+		public event Action<ActionCtx> Raised
 		{
-			add{}
-			remove{}
+			add		=> ( _callbacks ??= new( ) ).Add( value );
+			remove	=> _callbacks?.Remove( value );
 		}
-		// Add ability to subscribe and unsubscribe to event from code with different sugnatures
-		// Action, Action<ActionCtx>
+		
+		public void SetNext( FlexyAction next ) => _next = next;
+		
+		public override void	Do		( ActionCtx ctx )
+		{
+			if( _callbacks is { Count: > 0 } )
+			{
+				using var tmpList = TempList<Action<ActionCtx>>.Rent( _callbacks );
+				
+				foreach ( var action in tmpList )
+				{
+					try						{ action.Invoke( ctx );		}
+					catch ( Exception ex )	{ Debug.LogException( ex );	}
+				}
+			}
+			
+			_next?.Do( ctx );
+		}
 	}
 	
 	public static class FlexyActionExtensions
@@ -117,9 +155,7 @@
 			PingPong
 		}
 	}
-	
-	
-	
+		
 	public interface IActionEntrance		{ public void Do	( );		}
 	public interface IActionEntrance<T>		{ public void Do	( T data );	}
 	
