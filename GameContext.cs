@@ -2,6 +2,7 @@
 using System.Reflection;
 using Flexy.Utils;
 using UnityEngine.SceneManagement;
+using Debug = Flexy.Utils.Logger.Debug;
 
 namespace Flexy.Core
 {
