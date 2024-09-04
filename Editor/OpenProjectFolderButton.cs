@@ -12,7 +12,7 @@ public static class OpenProjectFolderButton
 	{
 		if( GUILayout.Button( "Open Project Folder", EditorStyles.toolbarButton, GUILayout.Height(14) ) )
 		{
-			Application.OpenURL( Application.dataPath );
+			Application.OpenURL( Application.dataPath.Replace( "/Assets", "" ) );
 		}
 	}
 }
