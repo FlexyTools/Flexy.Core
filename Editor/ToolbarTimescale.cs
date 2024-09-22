@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,9 +15,33 @@ public static class ToolbarTimescale
 		{
 			GUILayout.Label( "Timescale" );
 			
-			Time.timeScale = GUILayout.HorizontalSlider( Time.timeScale, 0, 10, GUILayout.MaxWidth(200), GUILayout.ExpandWidth(true) );
+			var x = (Single)Math.Log10(Time.timeScale); 
 			
-			GUILayout.Label( $"{Time.timeScale:F2}" );
+			var newval = GUILayout.HorizontalSlider( x, -3, 2, GUILayout.MaxWidth(200), GUILayout.ExpandWidth(true) );
+			
+			if( !Mathf.Approximately(newval, x) )
+				Time.timeScale = (Single)Math.Pow(10, newval); 
+			
+			var ts = Time.timeScale;
+			
+			if( ts >= 10 )
+			{
+				ts = (Single)Math.Round(ts);
+				GUILayout.Label( $"x{ts:F0}", GUILayout.Width(45) );
+			}
+			else if( ts >= 3 )
+			{
+				ts = (Single)Math.Round(ts*10)/10f;
+				GUILayout.Label( $"x{ts:F1}", GUILayout.Width(45) );
+			}
+			else if( ts > 0.01 )
+			{
+				GUILayout.Label( $"x{Time.timeScale:F2}", GUILayout.Width(45) );
+			}
+			else
+			{
+				GUILayout.Label( $"x{Time.timeScale:F3}", GUILayout.Width(45) );
+			}
 			
 			if( GUILayout.Button( "R", EditorStyles.toolbarButton, GUILayout.Height(14), GUILayout.Width(20) ) )
 			{

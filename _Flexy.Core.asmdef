@@ -2,13 +2,13 @@
     "name": "Flexy.Core",
     "rootNamespace": "Flexy.Core",
     "references": [
-        "GUID:f51ebe6a0ceec4240a699833d6309b23",
         "GUID:fe25561d224ed4743af4c60938a59d0b",
-        "GUID:0500b42cb82258245a8ba6d879e1c446",
-        "GUID:9bda3f93b1735ac4e863872e1a4762e2",
-        "GUID:3b570a5146f9d4f0fa107ed4559471a3",
+        "GUID:2665a8d13d1b3f18800f46e256720795",
         "GUID:d8b63aba1907145bea998dd612889d6b",
-        "GUID:2665a8d13d1b3f18800f46e256720795"
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:529b74b51f9df9847a64e490b76761e8",
+        "GUID:0500b42cb82258245a8ba6d879e1c446",
+        "GUID:9bda3f93b1735ac4e863872e1a4762e2"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

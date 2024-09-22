@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Reflection;
+using Flexy.AssetRefs;
 using Flexy.Utils;
 using UnityEngine.SceneManagement;
 using Debug = Flexy.Utils.Logger.Debug;
@@ -10,10 +11,14 @@ namespace Flexy.Core
 	public class GameContext : MonoBehaviour
 	{
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void StaticClear( ) 
+		private static void StaticClear( )
 		{
 			_global = null; 
-			_sceneToCtxRegistry.Clear( ); 
+			_sceneToCtxRegistry.Clear( );
+		}
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+		private static void StaticBind( ) 
+		{
 			SceneManager.sceneUnloaded -= ClearSceneRegistration; 
 			SceneManager.sceneUnloaded += ClearSceneRegistration; 
 			
@@ -22,6 +27,9 @@ namespace Flexy.Core
 			
 			SceneManager.sceneLoaded -= RegisterSideLoadedScene; 
 			SceneManager.sceneLoaded += RegisterSideLoadedScene;
+			
+			AssetsLoader.NewSceneCreatedAndLoadingStarted -= RegisterLoadedScene;
+			AssetsLoader.NewSceneCreatedAndLoadingStarted += RegisterLoadedScene;
 		}
 		
 		[SerializeField]	String				_name;
@@ -318,6 +326,10 @@ namespace Flexy.Core
 				Debug.Log( $"{Time.frameCount} [GameCtx] {ctx.Name} - Register Side loaded scene: {newScene.name}" );
 				ctx.RegisterGameScene( newScene );
 			}
+		}
+		private static 	void			RegisterLoadedScene		( Scene ctx, Scene newScene )						
+		{
+			GetCtx( ctx ).RegisterGameScene( newScene );
 		}
 		
 		private			FlexySystemGroup		GetGroupByEnum			( ESystemGroup group )								

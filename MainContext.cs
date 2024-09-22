@@ -17,8 +17,8 @@ namespace Flexy.Core
 				return;
 			}
 			
-			if( _global == null )
-				Instantiate( _globalContext );
+			if( !_global )
+				Instantiate( _globalContext ).name = _globalContext.name;
 			
 			transform.parent = null;
 			
@@ -29,7 +29,7 @@ namespace Flexy.Core
 		}
 		private			Boolean			CtxWithMyNameExists	( ) 	
 		{
-			if( _global == null )
+			if( !_global )
 				return false;
 			
 			var ctx = GetCtx( gameObject );
