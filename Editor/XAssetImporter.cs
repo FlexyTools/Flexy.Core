@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Flexy.AssetRefs;
 using Flexy.JsonXs;
 using Flexy.Utils.Editor;
 using UnityEditor;
@@ -46,11 +47,20 @@ namespace Flexy.Core.Editor
 
         public override void OnImportAsset( AssetImportContext ctx )
         {
-            var text        = File.ReadAllText( ctx.assetPath );
-            var instance    = (XObject)JsonX.FromJson( text );
-			
-            ctx.AddObjectToAsset	( "main", instance );
-            ctx.SetMainObject		( instance );
+	        try
+	        {
+		        XObject.GlobalDisableValidate ++;
+		        
+	            var text        = File.ReadAllText( ctx.assetPath );
+	            var instance    = (XObject)JsonX.FromJson( text );
+				
+	            ctx.AddObjectToAsset	( "main", instance );
+	            ctx.SetMainObject		( instance );
+	        }
+	        finally
+	        {
+		        XObject.GlobalDisableValidate --;
+	        }
         }
 
         public static void SaveDirtyAssetsToDisc()

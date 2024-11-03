@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Flexy.Core
 {
-	public struct RoList<T> : IList<T>
+	public struct RoList<T> : IReadOnlyList<T>
 	{
 		private RoList(IList<T> list) => _list = list;
 
@@ -24,15 +24,15 @@ namespace Flexy.Core
 		[MethodImpl(256)] public		IEnumerator<T>	GetEnumerator	( )			=> _list.GetEnumerator( );
 		[MethodImpl(256)] IEnumerator	IEnumerable.	GetEnumerator	( )			=> _list.GetEnumerator( );
 		
-		[MethodImpl(256)] void			ICollection<T>.	CopyTo			( T[] array, Int32 arrayIndex )	=> _list.CopyTo(array,arrayIndex);
+		[MethodImpl(256)] void							CopyTo			( T[] array, Int32 arrayIndex )	=> _list.CopyTo(array,arrayIndex);
 
-		public static implicit operator RoList<T>		( List<T> list )=> new( list );
 		public static implicit operator RoList<T>		( T[] list )	=> new( list );
-		
-		[MethodImpl(256)] void			IList<T>.		Insert			( Int32 index, T item )		=> throw new InvalidOperationException( );
-		[MethodImpl(256)] void			IList<T>.		RemoveAt		( Int32 index )				=> throw new InvalidOperationException( );
-		[MethodImpl(256)] void			ICollection<T>.	Add				( T item )					=> throw new InvalidOperationException( );
-		[MethodImpl(256)] void			ICollection<T>.	Clear			( )							=> throw new InvalidOperationException( );
-		[MethodImpl(256)] Boolean		ICollection<T>.	Remove			( T item )					=> throw new InvalidOperationException( );
+		public static implicit operator RoList<T>		( List<T> list )=> new( list );
+
+		// [MethodImpl(256)] void			IList<T>.		Insert			( Int32 index, T item )		=> throw new InvalidOperationException( );
+		// [MethodImpl(256)] void			IList<T>.		RemoveAt		( Int32 index )				=> throw new InvalidOperationException( );
+		// [MethodImpl(256)] void			ICollection<T>.	Add				( T item )					=> throw new InvalidOperationException( );
+		// [MethodImpl(256)] void			ICollection<T>.	Clear			( )							=> throw new InvalidOperationException( );
+		// [MethodImpl(256)] Boolean		ICollection<T>.	Remove			( T item )					=> throw new InvalidOperationException( );
 	}
 }

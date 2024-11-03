@@ -1,8 +1,8 @@
 ﻿namespace Flexy.Core
 {
-	public class ServiceInterfaceAttribute: Attribute
+	public class ServiceTypesAttribute: Attribute
 	{
-		public ServiceInterfaceAttribute ( params Type[] interfaceType )
+		public ServiceTypesAttribute ( params Type[] interfaceType )
 		{
 			InterfaceType = interfaceType;
 		}

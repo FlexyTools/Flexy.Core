@@ -16,6 +16,8 @@ namespace Flexy.Core
 				DestroyImmediate( gameObject );
 				return;
 			}
+
+			Debug.Log( $"{Time.frameCount} [MainContext] ----------- ===========   Game Initialisation Start   =========== -----------" );			
 			
 			if( !_global )
 				Instantiate( _globalContext ).name = _globalContext.name;
@@ -26,6 +28,8 @@ namespace Flexy.Core
 			
 			if( _isSingleton )
 				DontDestroyOnLoad( gameObject );
+			
+			Debug.Log( $"{Time.frameCount} [MainContext] ----------- ===========   Game Initialisation Done   =========== -----------" );
 		}
 		private			Boolean			CtxWithMyNameExists	( ) 	
 		{

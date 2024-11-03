@@ -3,6 +3,7 @@ using System.Reflection;
 using Flexy.AssetRefs;
 using Flexy.Utils;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using Debug = Flexy.Utils.Logger.Debug;
 
 namespace Flexy.Core
@@ -34,12 +35,14 @@ namespace Flexy.Core
 		
 		[SerializeField]	String				_name;
 		[SerializeField]	GameObject			_services;
-		public				ESceneRegistration	SceneRegistration;
+		[FormerlySerializedAs("SceneRegistration")] 
+		public				ELinkCtxTo	LinkTo;
 		
 		protected static	GameContext			_global;
 		internal			GameContext			_parent;
 		private readonly	List<GameContext>	_children = new(4);
 		private				EventBusHub			_localEventBus;
+		private				GameObject			_systems;
 		
 		protected 			FlexySystemGroup 		_group_EarlyUpdate;
 		protected 			FlexySystemGroup 		_group_FixedUpdateFirst;
@@ -48,17 +51,17 @@ namespace Flexy.Core
 		protected 			FlexySystemGroup 		_group_UpdateLast;
 		protected 			FlexySystemGroup 		_group_LateUpdateFirst;
 		protected 			FlexySystemGroup 		_group_LateUpdateLast;
+		protected 			FlexySystemGroup 		_group_LastPostLateUpdateLoop;
 
 		private static readonly		Dictionary<Scene, GameContext>	_sceneToCtxRegistry = new ( );
 		private readonly			Dictionary<Type, Object>		_registeredServicesDict	= new ( );
-		private readonly			List<Object>					_registeredServicesList	= new ( );
 		
 		public static	GameContext		Global					=> _global.OrNull( ) ?? (_global = CreateGlobalContext());
 
 		public			GameContext		ParentContext			=> _parent;
 			
-		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene );//go.TryGetComponent<GameContext>( out var selfCtx ) ? selfCtx : go.transform.root.TryGetComponent<GameContext>( out var rootCtx ) ? rootCtx : GetCtx( go.scene );
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
+		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene ); // go.transform.root.TryGetComponent<GameContext>( out var rootCtx ) ? rootCtx : GetCtx( go.scene );
 		public static 	GameContext		GetCtx					( Scene scene )		=> _sceneToCtxRegistry.TryGetValue( scene, out var ctx ) ? ctx : Global;
 		public			void			RegisterGameScene		( Scene scene )		
 		{
@@ -68,13 +71,14 @@ namespace Flexy.Core
 		
 		public	String					Name					=> _name;
 		public	EventBusHub				EventBus				=> _localEventBus ?? _global.EventBus;
-		
+		public	GameObject				Systems					=> _systems ? _systems : _systems = new( "Systems" ) { transform = { parent = transform } }; 
+
 		protected		void			Awake					( )		
 		{
 			if( _global == null )
 			{
 				_global = this;
-				SceneRegistration = ESceneRegistration.Global;
+				LinkTo = ELinkCtxTo.AllScenes;
 				DontDestroyOnLoad( gameObject );
 			}
 			else if ( _parent == null )
@@ -87,9 +91,9 @@ namespace Flexy.Core
 			
 			Debug.Log( $"{Time.frameCount} [GameCtx] {_name} - Awake" );
 			
-			switch( SceneRegistration )
+			switch( LinkTo )
 			{
-				case ESceneRegistration.Global:
+				case ELinkCtxTo.AllScenes:
 				{
 					Debug.Log( $"{Time.frameCount} [GameCtx] {_name} - Register Scenes: Global" );
 					RegisterGameScene( _global.gameObject.scene );
@@ -99,7 +103,7 @@ namespace Flexy.Core
 					
 					break;
 				}
-				case ESceneRegistration.Local:
+				case ELinkCtxTo.LocalScene:
 				{
 					Debug.Log( $"{Time.frameCount} [GameCtx] {_name} - Register Scenes: Local" );
 					RegisterGameScene( gameObject.scene );
@@ -114,15 +118,15 @@ namespace Flexy.Core
 			
 			RegisterCtxServices( );
 			
-			if( _registeredServicesList.Count > 0 )
+			if( _registeredServicesDict.Count > 0 )
 			{
 				InitializeServices		( this );
 				InitializeAsyncServices	( this ).Forget( Debug.LogException );
 				
 				static			void			InitializeServices				( GameContext ctx )		
 				{
-					var svcs = ctx._registeredServicesList.OfType<IService>( ).ToArray( ); 
-					Array.Sort( svcs, (l, r) => l.Order - r.Order );
+					var svcs = ctx._registeredServicesDict.Values.OfType<IService>( ).OrderBy( s => s.Order ).ToArray( ); 
+					
 					foreach ( var service in svcs )
 					{
 						try						{ service.OrderedInit( ctx ); }
@@ -131,8 +135,8 @@ namespace Flexy.Core
 				}
 				static async	UniTask			InitializeAsyncServices			( GameContext ctx )		
 				{
-					var svcs = ctx._registeredServicesList.OfType<IServiceAsync>( ).ToArray( );
-					Array.Sort( svcs, (l, r) => l.Order - r.Order );
+					var svcs = ctx._registeredServicesDict.Values.OfType<IServiceAsync>( ).OrderBy( s => s.Order ).ToArray( );
+					
 					foreach ( var service in svcs )
 					{
 						try						{ await service.OrderedInitAsync( ctx ); }
@@ -197,7 +201,7 @@ namespace Flexy.Core
 					SetService( service );
 			}
 		}
-		public			T				GetService<T>			( Boolean searchHierarchy = true )						where T : class 			
+		public			T				GetService<T>			( Boolean searchHierarchy = true ) where T : class	
 		{
 			if( _registeredServicesDict.TryGetValue( typeof(T), out var svc ) )
 				return svc as T;
@@ -214,23 +218,19 @@ namespace Flexy.Core
 			
 			var typeActual	= service.GetType();
 			
-			if( typeActual.GetCustomAttribute<ServiceInterfaceAttribute>( ) is {} si )
+			Debug.Log	( $"[GameCtx] {Name} - SetService: {GetDisplayServiceName(typeActual)}" );
+			try { _registeredServicesDict.Add( typeActual, service ); }			catch ( Exception ex ) { Debug.LogException( ex ); }
+			
+			if ( typeActual.GetCustomAttribute<ServiceTypesAttribute>( ) is {} si )
 			{
 				foreach( var serviceType in si.InterfaceType )
 				{
 					if ( !serviceType.IsAssignableFrom( typeActual ) ) 
 						continue;
 					
-					Debug.Log	( $"[GameCtx] {Name} - SetService: {serviceType} => {serviceType.Name}" );
-					_registeredServicesDict.Add( serviceType, service );
-					_registeredServicesList.Add( service );
+					Debug.Log	( $"[GameCtx] {Name} - SetService: {GetDisplayServiceName(serviceType)} => {GetDisplayServiceName(typeActual)}" );
+					try { _registeredServicesDict.Add( serviceType, service ); }		catch ( Exception ex ) { Debug.LogException( ex ); }
 				}
-			}
-			else
-			{
-				Debug.Log	( $"[GameCtx] {Name} - SetService: {typeActual.Name}" );
-				_registeredServicesDict.Add( typeActual, service );
-				_registeredServicesList.Add( service );
 			}
 		}
 		
@@ -238,11 +238,11 @@ namespace Flexy.Core
 		{
 			_localEventBus = new( );
 		}
-		public			void			AddSystem				( ESystemGroup group, FlexySystem system )				
+		public			void			AddSystem				( ESystemGroup group, FlexySystem system )			
 		{
 			GetGroupByEnum( group ).Systems.Add( system );
 		}
-		public			void			RemoveSystem			( ESystemGroup group, FlexySystem system )				
+		public			void			RemoveSystem			( ESystemGroup group, FlexySystem system )			
 		{
 			var g = GetGroupByEnum( group );
 			g.Systems.Remove( system );
@@ -292,7 +292,32 @@ namespace Flexy.Core
 			foreach ( var child in _children )
 				child.LateUpdateLast( );
 		}
-		
+		protected		void			LastPostLateUpdate		( )		
+		{
+			_group_LastPostLateUpdateLoop?.Update( );
+			foreach ( var child in _children )
+				child.LastPostLateUpdate( );
+		}
+
+
+		private static	String			GetDisplayServiceName	( Type svcType )									
+		{
+			var result = "";
+			
+			if( svcType.DeclaringType is {} dc )
+				result = dc.Name + ".";
+			
+			if( svcType.IsGenericType )
+			{
+				result += svcType.Name[..^2] + "<" + svcType.GetGenericArguments()[0].Name + ">";	
+			}
+			else
+			{
+				result += svcType.Name;
+			}
+			
+			return result;
+		}
 		private static	GameContext		CreateGlobalContext		( )													
 		{
 			var go = new GameObject( "Flexy Global Game Context", typeof(GameContext) );
@@ -332,7 +357,7 @@ namespace Flexy.Core
 			GetCtx( ctx ).RegisterGameScene( newScene );
 		}
 		
-		private			FlexySystemGroup		GetGroupByEnum			( ESystemGroup group )								
+		private			FlexySystemGroup	GetGroupByEnum		( ESystemGroup group )								
 		{
 			return group switch
 			{
@@ -348,10 +373,10 @@ namespace Flexy.Core
 			};
 		}
 		
-		public enum ESceneRegistration: Byte
+		public enum ELinkCtxTo: Byte
 		{
-			Global,
-			Local,
+			AllScenes,
+			LocalScene,
 			None
 		}
 		
@@ -447,8 +472,8 @@ namespace Flexy.Core
 					{
 						foreach ( var pair in ctx._registeredServicesDict )
 						{
-							var key			= pair.Key.Name;
-							var name		= pair.Value.GetType().Name;
+							var key			= GetDisplayServiceName(pair.Key);
+							var name		= GetDisplayServiceName(pair.Value.GetType());
 							
 							GUILayout.Label( key != name ? $"{key} => {name}" : $"{name}" );
 						}

@@ -2,7 +2,7 @@
 
 namespace Flexy.Core
 {
-	public struct RoDict<TKey, TValue> : IDictionary<TKey, TValue>
+	public struct RoDict<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
 	{
 		private RoDict(IDictionary<TKey, TValue> dict) => _dict = dict;
 
@@ -11,8 +11,8 @@ namespace Flexy.Core
 		public	Int32				Count		=> _dict.Count;
 		public	Boolean				IsReadOnly	=> _dict.IsReadOnly;
 		
-		public	ICollection<TKey>	Keys		=> _dict.Keys;
-		public	ICollection<TValue>	Values		=> _dict.Values;
+		public	IEnumerable<TKey>	Keys		=> _dict.Keys;
+		public	IEnumerable<TValue>	Values		=> _dict.Values;
 		
 		public	TValue				this [ TKey key ]
 		{
@@ -27,16 +27,8 @@ namespace Flexy.Core
 		public		IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator ( )	=> _dict.GetEnumerator( );
 		IEnumerator	IEnumerable.GetEnumerator ( )								=> GetEnumerator( );
 		
-		void	ICollection<KeyValuePair<TKey, TValue>>.CopyTo	( KeyValuePair<TKey, TValue>[] array, Int32 arrayIndex )	=> _dict.CopyTo( array, arrayIndex );
+		void	CopyTo	( KeyValuePair<TKey, TValue>[] array, Int32 arrayIndex )	=> _dict.CopyTo( array, arrayIndex );
 		
 		public static implicit operator RoDict<TKey, TValue>( Dictionary<TKey, TValue> dict ) => new( dict );
-		
-		
-		void	ICollection<KeyValuePair<TKey, TValue>>.Add		( KeyValuePair<TKey, TValue> item )						=> throw new NotImplementedException( );
-		void	ICollection<KeyValuePair<TKey, TValue>>.Clear	( )														=> throw new NotImplementedException( );
-		Boolean	ICollection<KeyValuePair<TKey, TValue>>.Remove	( KeyValuePair<TKey, TValue> item )						=> throw new NotImplementedException( );
-
-		void	IDictionary<TKey, TValue>.Add		( TKey key, TValue value )	=> throw new NotImplementedException( );
-		Boolean	IDictionary<TKey, TValue>.Remove	( TKey key )				=> throw new NotImplementedException( );
 	}
 }

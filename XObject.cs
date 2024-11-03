@@ -6,6 +6,8 @@ namespace Flexy.Core
     [JsonXObject(false, true, SerializeProperties = true)]
     public abstract class XObject : ScriptableObject
     {
+	    public static Int32 GlobalDisableValidate;
+		
         [SerializeField, HideInInspector]
         [JsonX(JsonXObject.C0, isInline:true), XToken(ETokenString.Bare)]
         private		String		_guid;
@@ -113,6 +115,9 @@ namespace Flexy.Core
 
 	    protected virtual void OnValidate()
 	    {
+		    if( GlobalDisableValidate > 0 )
+			    return;
+		    
 			try						{ _guid = UnityEditor.AssetDatabase.GUIDFromAssetPath( UnityEditor.AssetDatabase.GetAssetPath( this ) ).ToString( ); }
 			catch( Exception ex )	{ Debug.LogException( ex ); }
 			

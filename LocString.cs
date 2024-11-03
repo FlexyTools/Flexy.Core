@@ -1,4 +1,4 @@
-﻿using Flexy.JsonXs;
+﻿using Flexy.Serialisation;
 
 namespace Flexy.Core;
 
