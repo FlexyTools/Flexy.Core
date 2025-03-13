@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using Flexy.Utils;
-using Flexy.Utils.Editor;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -35,7 +34,7 @@ namespace Flexy.Core.Editor
 	        
 	        var ac = (Action)OnInspectorGUI;
 	        
-	        if( ac.Method.DeclaringType != typeof(ObjectEditor) )
+	        if( ac.Method.DeclaringType != typeof(RuntimeUIEditor) )
 		        _root.hierarchy.Add( new IMGUIContainer( DrawInspectorGUI ){ name = "FlexyContainer:On Inspector GUI" } ); 
         }
         

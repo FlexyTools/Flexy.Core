@@ -4,7 +4,6 @@ using Flexy.AssetRefs;
 using Flexy.Utils;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
-using Debug = Flexy.Utils.Logger.Debug;
 
 namespace Flexy.Core
 {

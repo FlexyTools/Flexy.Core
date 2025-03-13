@@ -1,6 +1,4 @@
-﻿using Flexy.Utils.Pooling;
-
-namespace Flexy.Core
+﻿namespace Flexy.Core
 {
 	[Serializable]
 	public struct FlexyMsg
