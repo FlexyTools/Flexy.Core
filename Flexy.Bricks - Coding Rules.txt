@@ -13,7 +13,7 @@ Bricks Building Principles
     Concrete vs Abstract
     SA-VmV
     
-write simple code
+Write simple code
     Using heuristic that it “Fits In My Head”
     That is easy to change
     That is easy to reason about

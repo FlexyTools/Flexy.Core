@@ -8,46 +8,10 @@ public static class Constants
 	public const Boolean	IsDevBuildOrEditor =	false;
 	#endif
 	
-	
-	
 	public const Boolean	IsClient	= !Constants.IsServer;
 	public const Boolean	IsServer	= IsUnityServer || NetCore;
 	
-	#if RELEASE_BUILD || RELEASE
-	public const Boolean	IsReleaseBuild =	true;
-	#else
-	public const Boolean	IsReleaseBuild =	false;
-	#endif
-	
-	#if BETA_BUILD
-	public const Boolean	IsBetaBuild =	true;
-	#else
-	public const Boolean	IsBetaBuild =	false;
-	#endif
-	
-	#if FORCE_LOCAL_ONLINE                              
-	public const Boolean	ForceLocalOnline =	true;
-	#else
-	public const Boolean	ForceLocalOnline =	false;
-	#endif
-	
-	#if DISABLE_LOGS
-	public const Boolean	DisableLogs =	true;
-	#else
-	public const Boolean	DisableLogs =	false;
-	#endif
-	
-	#if ENABLE_CHEATS
-	public const Boolean	EnableCheats =	true;
-	#else
-	public const Boolean	EnableCheats =	false;
-	#endif
-	
-	
-	//
-	// Platforms
-	//
-	
+		
 	#if NETCOREAPP
 	public const Boolean	NetCore = true;
 	#else

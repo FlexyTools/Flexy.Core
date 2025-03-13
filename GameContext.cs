@@ -40,18 +40,8 @@ namespace Flexy.Core
 		protected static	GameContext			_global;
 		internal			GameContext			_parent;
 		private readonly	List<GameContext>	_children = new(4);
-		private				EventBusHub			_localEventBus;
 		private				GameObject			_systems;
 		private				Boolean				_isAlive;
-		
-		protected 			FlexySystemGroup 		_group_EarlyUpdate;
-		protected 			FlexySystemGroup 		_group_FixedUpdateFirst;
-		protected 			FlexySystemGroup 		_group_FixedUpdateLast;
-		protected 			FlexySystemGroup 		_group_UpdateFirst;
-		protected 			FlexySystemGroup 		_group_UpdateLast;
-		protected 			FlexySystemGroup 		_group_LateUpdateFirst;
-		protected 			FlexySystemGroup 		_group_LateUpdateLast;
-		protected 			FlexySystemGroup 		_group_LastPostLateUpdateLoop;
 
 		private static readonly		Dictionary<Scene, GameContext>	_sceneToCtxRegistry = new ( );
 		private readonly			Dictionary<Type, Object>		_registeredServicesDict	= new ( );
@@ -71,7 +61,6 @@ namespace Flexy.Core
 
 		public	Boolean					IsAlive					=> _isAlive;
 		public	String					Name					=> _name;
-		public	EventBusHub				EventBus				=> _localEventBus ?? _global.EventBus;
 		public	GameObject				Systems					=> _systems ? _systems : _systems = new( "Systems" ) { transform = { parent = transform } }; 
 
 		protected		void			Awake					( )		
@@ -238,72 +227,6 @@ namespace Flexy.Core
 				}
 			}
 		}
-		
-		public			void			CreateLocalEventBus		( )													
-		{
-			_localEventBus = new( );
-		}
-		public			void			AddSystem				( ESystemGroup group, FlexySystem system )			
-		{
-			GetGroupByEnum( group ).Systems.Add( system );
-		}
-		public			void			RemoveSystem			( ESystemGroup group, FlexySystem system )			
-		{
-			var g = GetGroupByEnum( group );
-			g.Systems.Remove( system );
-		}
-		
-		protected		void			EarlyUpdate				( )		
-		{
-			_localEventBus?.ClearOldEvents( );
-
-			_group_EarlyUpdate?.Update( );
-			foreach ( var child in _children )
-				child.EarlyUpdate( );
-		}
-		protected		void			FixedUpdateFirst		( )		
-		{
-			_group_FixedUpdateFirst?.Update( );
-			foreach ( var child in _children )
-				child.FixedUpdateFirst( );
-		}
-		protected		void			FixedUpdateLast			( )		
-		{
-			_group_FixedUpdateLast?.Update( );
-			foreach ( var child in _children )
-				child.FixedUpdateLast( );
-		}
-		protected		void			UpdateFirst				( )		
-		{
-			_group_UpdateFirst?.Update( );
-			foreach ( var child in _children )
-				child.UpdateFirst( );
-		}
-		protected		void			UpdateLast				( )		
-		{
-			_group_UpdateLast?.Update( );
-			foreach ( var child in _children )
-				child.UpdateLast( );
-		}
-		protected		void			LateUpdateFirst			( )		
-		{
-			_group_LateUpdateFirst?.Update( );
-			foreach ( var child in _children )
-				child.LateUpdateFirst( );
-		}
-		protected		void			LateUpdateLast			( )		
-		{
-			_group_LateUpdateLast?.Update( );
-			foreach ( var child in _children )
-				child.LateUpdateLast( );
-		}
-		protected		void			LastPostLateUpdate		( )		
-		{
-			_group_LastPostLateUpdateLoop?.Update( );
-			foreach ( var child in _children )
-				child.LastPostLateUpdate( );
-		}
-
 
 		private static	String			GetDisplayServiceName	( Type svcType )									
 		{
@@ -328,7 +251,7 @@ namespace Flexy.Core
 			var go = new GameObject( "Flexy Global Game Context", typeof(GameContext) );
 			DontDestroyOnLoad( go );
 			
-			var ctx = go.GetComponent<GlobalContext>( );
+			var ctx = go.GetComponent<GameContext>( );
 			ctx._name = "Flexy Global Game Context";
 			
 			return ctx;
@@ -362,38 +285,11 @@ namespace Flexy.Core
 			GetCtx( ctx ).RegisterGameScene( newScene );
 		}
 		
-		private			FlexySystemGroup	GetGroupByEnum		( ESystemGroup group )								
-		{
-			return group switch
-			{
-				ESystemGroup.EarlyUpdate		=>	_group_EarlyUpdate		??= new(group.ToString()),
-				ESystemGroup.FixedUpdate		=>	_group_FixedUpdateFirst	??= new(group.ToString()),
-				ESystemGroup.FixedUpdateLast	=>	_group_FixedUpdateLast	??= new(group.ToString()),
-				ESystemGroup.Update				=>	_group_UpdateFirst		??= new(group.ToString()),
-				ESystemGroup.UpdateLast			=>	_group_UpdateLast		??= new(group.ToString()),
-				ESystemGroup.LateUpdate			=>	_group_LateUpdateFirst	??= new(group.ToString()),
-				ESystemGroup.LateUpdateLast		=>	_group_LateUpdateLast	??= new(group.ToString()),
-				
-				_ => throw new ArgumentOutOfRangeException(nameof(group), group, null)
-			};
-		}
-		
 		public enum ELinkCtxTo: Byte
 		{
 			AllScenes,
 			LocalScene,
 			None
-		}
-		
-		public enum ESystemGroup : Byte
-		{
-			EarlyUpdate,	
-			FixedUpdate,		
-			FixedUpdateLast,		
-			Update,				
-			UpdateLast,			
-			LateUpdate,			
-			LateUpdateLast
 		}
 		
 		#if UNITY_EDITOR

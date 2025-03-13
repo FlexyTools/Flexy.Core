@@ -1,7 +1,7 @@
 ﻿using Unity.Burst;
 using static Unity.Mathematics.math;
 
-namespace Flexy.Core;
+namespace Flexy.Core.Tweens;
 
 public enum Ease : Byte
 {

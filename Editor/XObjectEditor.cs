@@ -64,24 +64,24 @@ namespace Flexy.Core.Editor
 			if ( targets.Length != 1 )
 				return;
 
-			if( _target.GetType( ).GetCustomAttribute<JsonXSerializeAttribute>( true ) == null )
-				return;
+			// if( _target.GetType( ).GetCustomAttribute<JsonXSerializeAttribute>( true ) == null )
+			// 	return;
 			
-			var path = AssetDatabase.GetAssetPath( _target );
-
-			if ( !path.EndsWith( ".asset" ) )
-				return;
-
-			try		{ AssetDatabase.StartAssetEditing( );
-			{
-				var ext		= XAssetImporter.GetExtensionForType( _target.GetType( ) );
-				var from	= path;
-				var to		= path[..^6] + ext;
-				
-				AssetDatabase.MoveAsset( from, to );
-				//File. JsonX.ToJsonFile( _target, to );
-			}}
-			finally { AssetDatabase.StopAssetEditing( ); }
+			// var path = AssetDatabase.GetAssetPath( _target );
+			//
+			// if ( !path.EndsWith( ".asset" ) )
+			// 	return;
+			//
+			// try		{ AssetDatabase.StartAssetEditing( );
+			// {
+			// 	var ext		= XAssetImporter.GetExtensionForType( _target.GetType( ) );
+			// 	var from	= path;
+			// 	var to		= path[..^6] + ext;
+			// 	
+			// 	AssetDatabase.MoveAsset( from, to );
+			// 	//File. JsonX.ToJsonFile( _target, to );
+			// }}
+			// finally { AssetDatabase.StopAssetEditing( ); }
 		}
 		protected override	void			OnHeaderGUI				( )		
 		{
@@ -133,7 +133,7 @@ namespace Flexy.Core.Editor
 			base.OnInspectorGUI( );
 			
 			if( targets.Any( EditorUtility.IsDirty ) )
-				MarkDirty( );
+			 	MarkDirty( );
 			
 			if( componentToRemove >= 0 )
 			{
@@ -145,15 +145,9 @@ namespace Flexy.Core.Editor
 				
 				try					{ XObject.Internal.OnValidate( _target ); }
 				catch (Exception e) { Debug.LogException(e); }
-			
-				if( _target.GetType( ).GetCustomAttribute<JsonXSerializeAttribute>( true ) == null )
-					return;
-
-				if( _target.GetType( ).GetCustomAttribute<JsonXSerializeAttribute>( true ) != null )
-				{	
-					XAssetImporter.SetDirty( _target );
-					XAssetImporter.SaveDirtyAssetsToDisc( );
-				}
+				
+				// XAssetImporter.SetDirty( _target );
+				// XAssetImporter.SaveDirtyAssetsToDisc( );
 				
 				EditorUtility.SetDirty( _target );
 				AssetDatabase.SaveAssetIfDirty( _target );
@@ -171,11 +165,11 @@ namespace Flexy.Core.Editor
 			try					{ XObject.Internal.OnValidate( _target ); }
 			catch (Exception e) { Debug.LogException(e); }
 			
-			if( _target.GetType( ).GetCustomAttribute<JsonXSerializeAttribute>( true ) != null )
-			{	
-				XAssetImporter.SetDirty( _target );
-				XAssetImporter.SaveDirtyAssetsToDisc( );
-			}
+			// if( _target.GetType( ).GetCustomAttribute<JsonXSerializeAttribute>( true ) != null )
+			// {	
+				// XAssetImporter.SetDirty( _target );
+				// XAssetImporter.SaveDirtyAssetsToDisc( );
+			//}
 			
 			EditorUtility.SetDirty( _target );
 			AssetDatabase.SaveAssetIfDirty( _target );
@@ -183,16 +177,20 @@ namespace Flexy.Core.Editor
 
         protected			void			MarkDirty				( )		
         {
+	        
+	        
             //Mark objects as dirty
             foreach ( var o in targets )
             {
                 if ( o == null )
                     continue;
 
-				if( _target.GetType( ).GetCustomAttribute<JsonXSerializeAttribute>( true ) == null )
-					continue;
-				
-                XAssetImporter.SetDirty( (XObject) o );
+                EditorUtility.SetDirty( o );
+                
+				// if( _target.GetType( ).GetCustomAttribute<JsonXSerializeAttribute>( true ) == null )
+				// 	continue;
+				//
+    //             XAssetImporter.SetDirty( (XObject) o );
             }
         }
         protected			void			MakeObjectEditable		( )		
