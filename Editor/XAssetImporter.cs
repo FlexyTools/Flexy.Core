@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Flexy.AssetRefs;
-using Flexy.JsonXs;
+using Flexy.AssetRefs.Extra;
+//using Flexy.JsonXs;
 using Flexy.Utils.Editor;
 using UnityEditor;
 using UnityEditor.AssetImporters;
@@ -52,7 +53,7 @@ namespace Flexy.Core.Editor
 		        XObject.GlobalDisableValidate ++;
 		        
 	            var text        = File.ReadAllText( ctx.assetPath );
-	            var instance    = (XObject)JsonX.FromJson( text );
+	            var instance    = (XObject)JsonUtility.FromJson<XObject>( text );
 				
 	            ctx.AddObjectToAsset	( "main", instance );
 	            ctx.SetMainObject		( instance );
@@ -88,7 +89,7 @@ namespace Flexy.Core.Editor
                             continue;
 
                         //ServerSettingsExporter.Serialize( gdiObject, path );
-                        JsonX.ToJsonFile( xObject, path );
+                        File.WriteAllText( path, JsonUtility.ToJson( xObject ) );
                         EditorUtility.ClearDirty(xObject);
                     }
                     catch ( Exception ex )

@@ -1,22 +1,22 @@
-﻿using Flexy.JsonXs;
-using Flexy.JsonXs.Format;
+﻿// using Flexy.JsonXs;
+// using Flexy.JsonXs.Format;
 
 namespace Flexy.Core
 {
-    [JsonXObject(false, true, SerializeProperties = true)]
+    //[JsonXObject(false, true, SerializeProperties = true)]
     public abstract class XObject : ScriptableObject
     {
 	    public static Int32 GlobalDisableValidate;
 		
         [SerializeField, HideInInspector]
-        [JsonX(JsonXObject.C0, isInline:true), XToken(ETokenString.Bare)]
+        //[JsonX(JsonXObject.C0, isInline:true), XToken(ETokenString.Bare)]
         private		String		_guid;
         
 		#if !UNITY_EDITOR
-		[JsonX(JsonXObject.N)]		
+		//[JsonX(JsonXObject.N)]		
 		public		String		Name	{ get => name; set => name = value; }
 		#else
-		[JsonX(JsonXObject.N)]
+		//[JsonX(JsonXObject.N)]
 		public		String		Name	=> name.Trim().Replace(" ","-");
 		#endif
         
@@ -38,7 +38,7 @@ namespace Flexy.Core
 
 		public XComponent MainComponent => _components?[0];
 
-		[JsonX(":Components", order:250, suppressEmpty:true)]
+		//[JsonX(":Components", order:250, suppressEmpty:true)]
         [SerializeReference]
         private List<XComponent> _components = new( );
 

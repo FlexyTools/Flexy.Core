@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
-using Flexy.JsonXs;
+//using Flexy.JsonXs;
 using Flexy.Utils.Editor;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -79,7 +80,7 @@ namespace Flexy.Core.Editor
 				var to		= path[..^6] + ext;
 				
 				AssetDatabase.MoveAsset( from, to );
-				JsonX.ToJsonFile( _target, to );
+				//File. JsonX.ToJsonFile( _target, to );
 			}}
 			finally { AssetDatabase.StopAssetEditing( ); }
 		}

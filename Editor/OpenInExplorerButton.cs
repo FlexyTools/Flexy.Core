@@ -1,0 +1,24 @@
+﻿using UnityEditor;
+using UnityEngine;
+
+namespace Flexy.Core.Editor;
+
+[InitializeOnLoad]
+public static class OpenInExplorerButton
+{
+	static OpenInExplorerButton( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( OnTestRunGUI, UnityEditorTopToolbar.EPlace.Right ); }
+	
+	private static void		OnTestRunGUI			( )	
+	{
+		#if UNITY_STANDALONE_WIN
+		var text = "Explorer";
+		#else
+		var text = "Finder";
+		#endif
+		
+		if( GUILayout.Button( text, EditorStyles.toolbarButton, GUILayout.Height(14) ) )
+		{
+			Application.OpenURL( Application.dataPath.Replace( "/Assets", "" ) );
+		}
+	}
+}

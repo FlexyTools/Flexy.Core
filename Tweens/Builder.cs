@@ -67,7 +67,7 @@ public struct TweenData<T, TLerp> where T : unmanaged where TLerp : unmanaged, I
 	public	Ease			Ease;
 	public	EDelay			DelayType;
 	public	ELoop			LoopType;
-	public	ETime		TweenTime;
+	public	ETime			TweenTime;
 	public	TLerp			Lerper;
 	
 	public	TweenBindData	BindData;

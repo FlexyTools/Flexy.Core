@@ -1,0 +1,47 @@
+Flexy.Bricks
+
+Bricks Building Principles
+    SPOT
+    KISS - write simple predictable code
+    Pure & self-sufficient
+    Plug & Play
+    Data Driven
+    Nature Oriented (Domain Based)
+    Testable
+    Fault Tolerance
+    Composition vs Inheritance
+    Concrete vs Abstract
+    SA-VmV
+    
+write simple code
+    Using heuristic that it “Fits In My Head”
+    That is easy to change
+    That is easy to reason about
+    By focusing on use rather than reuse
+    
+
+Testing
+    Characterisation tests
+    Test use cases    
+    Test integration - play
+
+
+Create with Patterns
+    Service Locator
+    Facade
+    State
+    Component & ECS
+    Msg Bus
+    Pipeline
+    Flyweight
+    EventAction
+
+
+SA-VmV
+State & BusinessLogic (host):
+   [S]   State         (Entities | Data Struct / Class)     - pure data with methods for changing it and serialisation  
+   [A]   Aspect        (Use Cases | Tick Job)               - business logic that act on many models (composition) to provide service  
+  
+Presentation (client)
+   [Vm] ViewModel      (Presenters | Update View Monobeh)   - logic coupled to view that prepare data for view interpolate it, update view, get input from view 
+   [V]  View           (Frameworks | Render Components)     - view layer that do actual visualisation of model using data state transformed by ViewModel

@@ -4,8 +4,8 @@ namespace Flexy.Core;
 
 public static class TweenExtensions
 {
-	public static	Builder<Single, SingleLerper>		    To			        ( this FTween ft, Single from,	Single to,	Single duration, Ease ease = default )					=> Value<Single, SingleLerper>		( ft, from, to, duration, ease );
-	public static	Builder<Int32, Int32Lerper>			    To			        ( this FTween ft, Int32 from,	Int32 to,	Single duration, Ease ease = default )					=> Value<Int32, Int32Lerper>		( ft, from, to, duration, ease );
+	public static	Builder<Single, SingleLerper>		    Value		        ( this FTween ft, Single from,	Single to,	Single duration, Ease ease = default )					=> Value<Single, SingleLerper>		( ft, from, to, duration, ease );
+	public static	Builder<Int32, Int32Lerper>			    Value		        ( this FTween ft, Int32 from,	Int32 to,	Single duration, Ease ease = default )					=> Value<Int32, Int32Lerper>		( ft, from, to, duration, ease );
 	                                                                        	
 	public static	Builder<Vector3, Vector3Lerper>		    Position	        ( this FTween ft,	Transform tr, Vector3 from,	Vector3 to,		Single duration, Ease ease = default )		=> ft.Value<Vector3, Vector3Lerper>( from, to, duration, ease )	.BindTo( tr, static (tr, value) => tr.position = value );
 	public static	Builder<Single, SingleLerper>		    PositionX	        ( this FTween ft,	Transform tr, Single from,	Single to,		Single duration, Ease ease = default )		=> ft.Value<Single, SingleLerper>( from, to, duration, ease )	.BindTo( tr, static (tr, value) => tr.position = tr.position with {x=value} );

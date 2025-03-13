@@ -43,6 +43,7 @@ namespace Flexy.Core
 		private readonly	List<GameContext>	_children = new(4);
 		private				EventBusHub			_localEventBus;
 		private				GameObject			_systems;
+		private				Boolean				_isAlive;
 		
 		protected 			FlexySystemGroup 		_group_EarlyUpdate;
 		protected 			FlexySystemGroup 		_group_FixedUpdateFirst;
@@ -65,16 +66,19 @@ namespace Flexy.Core
 		public static 	GameContext		GetCtx					( Scene scene )		=> _sceneToCtxRegistry.TryGetValue( scene, out var ctx ) ? ctx : Global;
 		public			void			RegisterGameScene		( Scene scene )		
 		{
-			Debug.Log( $"{Time.frameCount} [GameCtx] {_name} - Register scene: {scene.name}" );
+			Debug.Log( $"[GameCtx] {_name} - Register scene: {scene.name}" );
 			_sceneToCtxRegistry[scene] = this;
 		}
-		
+
+		public	Boolean					IsAlive					=> _isAlive;
 		public	String					Name					=> _name;
 		public	EventBusHub				EventBus				=> _localEventBus ?? _global.EventBus;
 		public	GameObject				Systems					=> _systems ? _systems : _systems = new( "Systems" ) { transform = { parent = transform } }; 
 
 		protected		void			Awake					( )		
 		{
+			_isAlive = true;
+			
 			if( _global == null )
 			{
 				_global = this;
@@ -89,13 +93,13 @@ namespace Flexy.Core
 			if( String.IsNullOrWhiteSpace( _name ) )
 				_name = gameObject.name + " Context";
 			
-			Debug.Log( $"{Time.frameCount} [GameCtx] {_name} - Awake" );
+			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {_name} - Awake" );
 			
 			switch( LinkTo )
 			{
 				case ELinkCtxTo.AllScenes:
 				{
-					Debug.Log( $"{Time.frameCount} [GameCtx] {_name} - Register Scenes: Global" );
+					Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {_name} - Register Scenes: All" );
 					RegisterGameScene( _global.gameObject.scene );
 					var count = SceneManager.sceneCount;
 					for ( var i = 0; i < count; i++ )
@@ -105,13 +109,13 @@ namespace Flexy.Core
 				}
 				case ELinkCtxTo.LocalScene:
 				{
-					Debug.Log( $"{Time.frameCount} [GameCtx] {_name} - Register Scenes: Local" );
+					Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {_name} - Register Scenes: One" );
 					RegisterGameScene( gameObject.scene );
 					break;
 				}
 				default:
 				{
-					Debug.Log( $"{Time.frameCount} [GameCtx] {_name} - Register Scenes: None" );
+					Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {_name} - Register Scenes: None" );
 					break;
 				}
 			}
@@ -157,6 +161,8 @@ namespace Flexy.Core
 		}
 		protected		void			OnDestroy				( )		
 		{
+			_isAlive = false;
+			
 			if ( !_parent ) 
 				return;
 			
@@ -395,7 +401,7 @@ namespace Flexy.Core
 		[RuntimeInspectorUI( Repaint = true )]
 		public void RuntimeGUI	( )		
 		{
-			if( !Application.isPlaying )
+			if( !Application.isPlaying || !gameObject.scene.IsValid( ) )
 				return;
 			
 			GUILayout.Space( 10 );
