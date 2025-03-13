@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Flexy.Utils.Editor;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -13,7 +12,7 @@ using Object = System.Object;
 namespace Flexy.Core.Editor
 {
     [CustomEditor( typeof(XObject), true), CanEditMultipleObjects]
-    public class XObjectEditor : ScriptableEditor
+    public class XObjectEditor : RuntimeUIEditor
     {
 		protected   		XObject			_target => (XObject)target;
 		private				Int32			_dirtyCount;

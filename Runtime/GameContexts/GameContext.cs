@@ -1,13 +1,12 @@
 ﻿using System.Linq;
 using System.Reflection;
 using Flexy.AssetRefs;
-using Flexy.Utils;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 namespace Flexy.Core
 {
-	[DefaultExecutionOrder(Int16.MinValue+2)]
+	[DefaultExecutionOrder(Int16.MinValue+1)]
 	public class GameContext : MonoBehaviour
 	{
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
