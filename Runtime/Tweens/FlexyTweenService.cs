@@ -1,6 +1,6 @@
 ﻿namespace Flexy.Core.Tweens
 {
-	public class FlexyTweenService : MonoBehaviour
+	public class FlexyTweenService : MonoBehaviour, IService
 	{
 		public static FlexyTweenService _service;
 		private readonly Dictionary<Int64, TweenRunner> _runners = new( );
@@ -42,6 +42,7 @@
 			
 			return runner.Await( handle );
 		}
+		public void				OrderedInit		( GameContext ctx )			=> _service = this;
 		
 		private	void			Awake	( )		
 		{

@@ -63,6 +63,18 @@ namespace Flexy.Core.Editor
 			if ( targets.Length != 1 )
 				return;
 
+			var path = AssetDatabase.GetAssetPath( _target );
+			
+			if ( !path.EndsWith( ".asset" ) )
+			{
+				var newpath		= Path.ChangeExtension(path,".asset");
+				var newAsset	= Instantiate( _target );
+				AssetDatabase.CreateAsset( newAsset, newpath );
+				Selection.activeObject = newAsset;
+				
+				AssetDatabase.DeleteAsset( path );
+			}
+			
 			// if( _target.GetType( ).GetCustomAttribute<JsonXSerializeAttribute>( true ) == null )
 			// 	return;
 			

@@ -8,7 +8,8 @@
         "GUID:2665a8d13d1b3f18800f46e256720795",
         "GUID:d8b63aba1907145bea998dd612889d6b",
         "GUID:f51ebe6a0ceec4240a699833d6309b23",
-        "GUID:9bda3f93b1735ac4e863872e1a4762e2"
+        "GUID:9bda3f93b1735ac4e863872e1a4762e2",
+        "GUID:b0214a6008ed146ff8f122a6a9c2f6cc"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -27,6 +28,11 @@
             "name": "com.annulusgames.lit-motion",
             "expression": "1.8",
             "define": "LIT_MOTION_PACKAGE"
+        },
+        {
+            "name": "jp.hadashikick.vcontainer",
+            "expression": "1",
+            "define": "VCONTAINER_PACKAGE"
         }
     ],
     "noEngineReferences": false

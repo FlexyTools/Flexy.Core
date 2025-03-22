@@ -6,14 +6,14 @@ namespace Flexy.Core.Editor;
 [InitializeOnLoad]
 public static class OpenInExplorerButton
 {
-	static OpenInExplorerButton( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( OnTestRunGUI, UnityEditorTopToolbar.EPlace.Right ); }
+	static OpenInExplorerButton( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( OnGUI, UnityEditorTopToolbar.EPlace.Right ); }
 	
-	private static void		OnTestRunGUI			( )	
+	private static void		OnGUI			( )	
 	{
-		#if UNITY_STANDALONE_WIN
-		var text = "Explorer";
-		#else
+		#if UNITY_STANDALONE_OSX || UNITY_IOS || UNITY_TVOS
 		var text = "Finder";
+		#else
+		var text = "Explorer";
 		#endif
 		
 		if( GUILayout.Button( text, EditorStyles.toolbarButton, GUILayout.Height(14) ) )
