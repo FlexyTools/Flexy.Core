@@ -17,9 +17,9 @@ namespace Flexy.Core.Editor
 			style.richText = true;
 		
 			if( EditorGUIUtility.isProSkin )
-				GUILayout.Label( $"<size=16><color=#888888><b>---=== {Application.productName} ===---</b></color></size>", style );
+				GUILayout.Label( $"<size=16><color=#888888><b>{Application.productName}</b></color></size>", style );
 			else
-				GUILayout.Label( $"<size=16><color=#000000><b>---=== {Application.productName} ===---</b></color></size>", style );
+				GUILayout.Label( $"<size=16><color=#000000><b>{Application.productName}</b></color></size>", style );
 		}
 	}
 }
