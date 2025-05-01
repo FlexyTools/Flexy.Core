@@ -62,7 +62,9 @@ public static class TestCaseDropdown
 		// GUILayout.Label( "Test Case:" );
 		// GUI.enabled = true;
 		
-		if( EditorGUILayout.DropdownButton( new( $"{testSelected}" ), FocusType.Passive, EditorStyles.toolbarPopup ) )
+		var selectedNiceName = ObjectNames.NicifyVariableName( testSelected );
+		
+		if( EditorGUILayout.DropdownButton( new( $"{selectedNiceName}" ), FocusType.Passive, EditorStyles.toolbarPopup ) )
 		{
 			var menu = new GenericMenu();
 			
@@ -83,7 +85,7 @@ public static class TestCaseDropdown
 
 					foreach ( var testRun in testRuns )
 					{
-						menu.AddItem( new( $" {testRun} " ), false, SetTestRunName, (testRunSource.Name, testRun) );
+						menu.AddItem( new( $" {ObjectNames.NicifyVariableName(testRun)} " ), false, SetTestRunName, (testRunSource.Name, testRun) );
 					}
 				}
 				catch (Exception ex) { Debug.LogException(ex); }

@@ -50,19 +50,29 @@ public class LitTweenRunner : TweenBackend
 	
 	private static MotionBuilder<T, To, Ta> LitBuilder<T, To, Ta, Tl>( Builder<T, Tl> tween ) where T: unmanaged where Tl: unmanaged, ITweenLerper<T> where To: unmanaged, IMotionOptions where Ta:unmanaged, IMotionAdapter<T, To> 
 	{
-		var builder = LMotion.Create<T, To, Ta>( tween.From, tween.To, tween.DurationMs / 1000.0f )
-			.WithEase( (LitMotion.Ease)tween.Ease )
-			.WithLoops( tween.LoopsCount, (LoopType)tween.LoopType )
-			.WithDelay( tween.DelayMs / 1000.0f, (DelayType)tween.DelayType )
-			.WithOnComplete( tween.Callbacks.Completed )
-			.WithOnCancel( tween.Callbacks.Canceled );
+		var builder = LMotion.Create<T, To, Ta>( tween.Data.From, tween.Data.To, tween.Data.DurationMs / 1000.0f )
+			.WithEase( (LitMotion.Ease)tween.Data.Ease )
+			.WithLoops( tween.Data.LoopsCount, (LoopType)tween.Data.LoopType )
+			.WithDelay( tween.Data.DelayMs / 1000.0f, (DelayType)tween.Data.DelayType )
+			.WithOnComplete( tween.Data.Callbacks.Completed )
+			.WithOnCancel( tween.Data.Callbacks.Canceled );
 		//.WithScheduler( MotionScheduler.UpdateIgnoreTimeScale );
 		
-		builder.buffer.CallbackData.StateCount		= tween.BindData.StateCount;
-		builder.buffer.CallbackData.State1			= tween.BindData.State1;
-		builder.buffer.CallbackData.State2			= tween.BindData.State2;
-		builder.buffer.CallbackData.State3			= tween.BindData.State3;
-		builder.buffer.CallbackData.UpdateAction	= tween.BindData.BindedAction;
+		var bindData = tween.Data.BindData;
+		
+		switch(tween.Data.BindData.StateCount)
+		{
+			case 0: builder.Bind((Action<T>)bindData.BindedAction); break;
+			case 1: builder.Bind(bindData.State1, (Action<T, Object>)bindData.BindedAction); break;
+			case 2: builder.Bind(bindData.State1, bindData.State2, (Action<T, Object, Object>)bindData.BindedAction); break;
+			case 3: builder.Bind(bindData.State1, bindData.State2, bindData.State3, (Action<T, Object, Object, Object>)bindData.BindedAction); break;
+		}
+		
+		// builder.buffer.StateCount		= bindData.StateCount;
+		// builder.buffer.State0			= bindData.State1;
+		// builder.buffer.State1			= bindData.State2;
+		// builder.buffer.State2			= bindData.State3;
+		// builder.buffer.UpdateAction		= bindData.BindedAction;
 		
 		return builder;
 	}

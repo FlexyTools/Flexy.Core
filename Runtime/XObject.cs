@@ -108,7 +108,8 @@ namespace Flexy.Core
 		public	void		SetupOwnerToComponents( )										
 		{
 			foreach( var c in _components )
-				c.Owner = this;
+				if( c is not null )
+					c.Owner = this;
 		}
 		
 #if UNITY_EDITOR

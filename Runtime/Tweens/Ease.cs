@@ -5,7 +5,6 @@ namespace Flexy.Core.Tweens;
 
 public enum Ease : Byte
 {
-	SCurve,
 	Linear,
 	
 	InSine,
@@ -48,8 +47,7 @@ public enum Ease : Byte
 	OutBounce,
 	InOutBounce,
 	
-	Bezier,
-	CustomEasingFunc,
+	CustomAnimationCurve
 }
 
 
@@ -63,7 +61,6 @@ public static class EaseUtility
 	{
 		return ease switch
 		{
-			Ease.SCurve		=> SCurve		( t ),
 			Ease.Linear		=> Linear		( t ),
 			Ease.InSine		=> InSine		( t ),
 			Ease.OutSine	=> OutSine		( t ),
