@@ -54,9 +54,10 @@ namespace Flexy.Core
         [Header("Game Ctx")]
 		[SerializeField]	String				_name;
 		[SerializeField]	GameObject			_services;
+		[SerializeField]	Boolean				_ignoreServiceInitFailures;
 		[FormerlySerializedAs("SceneRegistration")]
 		public				ELinkCtxTo	        LinkTo;
-
+		
 		protected static	GameContext			_global;
 		internal			GameContext			_parent;
 		private readonly	List<GameContext>	_children = new(4);
@@ -70,8 +71,8 @@ namespace Flexy.Core
 		public static	GameContext		Global					=> _global is not null ? _global : _global = CreateGlobalContext();
 		public			GameContext		ParentContext			=> _parent;
 
-		public			Boolean			InitDone				{ get; private set; }
-		
+		public			EInitState		InitState				{ get; protected set; }
+
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
 		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene ); // go.transform.root.TryGetComponent<GameContext>( out var rootCtx ) ? rootCtx : GetCtx( go.scene );
 		public static 	GameContext		GetCtx					( Scene scene )		=> _sceneToCtxRegistry.TryGetValue( scene, out var ctx ) ? ctx : Global;
@@ -205,13 +206,9 @@ namespace Flexy.Core
 		public			void			SetParent				( GameContext ctx )
 		{
 			_parent = ctx;
-
+			
 			#if VCONTAINER_PACKAGE
-			parentReference.Object = ctx;
-
-
-			// Rebind internal container from new parent
-			Build( );
+			parentReference.Object = _parent;
 			#endif
 		}
 		public 			void			RegisterCtxServices		( )
@@ -291,21 +288,48 @@ namespace Flexy.Core
 		{
 			foreach ( var service in services )
 			{
-				try						{ service.OrderedInit( this ); }
-				catch ( Exception ex )	{ Debug.LogException( ex ); }
+				try						
+				{ 
+					service.OrderedInit( this ); 
+				}
+				catch ( Exception ex )	
+				{
+					Debug.LogException( ex );
+					if( !_ignoreServiceInitFailures )
+					{
+						InitState = EInitState.InitFail;
+						break;
+					}
+				}
 			}
 		}
 		private async			UniTask	DoInitializeAsyncServices( IServiceAsync[] asyncServices )
 		{
+			if( InitState == EInitState.InitFail ) 
+				return;
+			
 			await InitializeAsyncServices( asyncServices );
-			InitDone = true;
+			
+			if( InitState != EInitState.InitFail ) 
+				InitState = EInitState.Done;
 		}
 		protected virtual async	UniTask	InitializeAsyncServices	( IServiceAsync[] asyncServices )
 		{
 			foreach ( var service in asyncServices )
 			{
-				try						{ await service.OrderedInitAsync( this ); }
-				catch ( Exception ex )	{ Debug.LogException( ex ); }
+				try						
+				{ 
+					await service.OrderedInitAsync( this ); 
+				}
+				catch ( Exception ex )	
+				{
+					Debug.LogException( ex );
+					if( !_ignoreServiceInitFailures )
+					{
+						InitState = EInitState.InitFail;
+						break;
+					}
+				}
 			}
 		}
 		
@@ -515,5 +539,12 @@ namespace Flexy.Core
 		public static T GetService<T>( this GameObject context )	where T:class => context.scene.GetService<T>( );
 		public static T GetService<T>( this MonoBehaviour context )	where T:class => context.gameObject.scene.GetService<T>( );
 		public static T GetService<T>( this Scene context )			where T:class => GameContext.GetCtx( context ).GetService<T>();
+	}
+	
+	public enum EInitState
+	{
+		InProgress = 0,
+		InitFail = 1,
+		Done = 2,
 	}
 }
