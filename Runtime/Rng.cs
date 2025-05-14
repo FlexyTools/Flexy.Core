@@ -1,8 +1,14 @@
+using System.Runtime.CompilerServices;
+using Unity.Mathematics;
+
 namespace Flexy.Core;
 
 public static class Noise
 {
-	public static UInt32 SquirrelNoise5	( Int32 val, UInt32 seed )
+	private const Single OneOverMaxUint	= 1.0f / 0xFFFFFFFF;
+	private const Single OneOverMaxInt	= 1.0f / 0x7FFFFFFF;
+	
+	[MethodImpl(256)] public static		UInt32	SquirrelNoise5			( Int32 val, UInt32 seed )
 	{
 		//   From https://www.youtube.com/watch?v=LWFzPP8ZbdU
 		//   This version is SquirrelNoise5, which was posted on the author's Twitter: https://twitter.com/SquirrelTweets/status/1421251894274625536.
@@ -30,22 +36,61 @@ public static class Noise
 		
 		return mangledBits;
 	}
+	
+	[MethodImpl(256)] public static		UInt32	Get1dNoiseUint			( Int32 indexX, UInt32 seed )
+	{
+		return SquirrelNoise5( indexX, seed );
+	}
+	[MethodImpl(256)] public static		UInt32	Get2dNoiseUint			( Int32 indexX, Int32 indexY, UInt32 seed )
+	{
+		const Int32 PRIME_NUMBER = 198491317; // Large prime number with non-boring bits
+		return SquirrelNoise5( indexX + (PRIME_NUMBER * indexY), seed );
+	}
+	[MethodImpl(256)] public static		UInt32  Get3dNoiseUint			( Int32 indexX, Int32 indexY, Int32 indexZ, UInt32 seed )
+	{
+		const Int32 PRIME1 = 198491317; // Large prime number with non-boring bits
+		const Int32 PRIME2 = 6542989; // Large prime number with distinct and non-boring bits
+		return SquirrelNoise5( indexX + (PRIME1 * indexY) + (PRIME2 * indexZ), seed );
+	}
+	[MethodImpl(256)] public static		UInt32  Get4dNoiseUint			( Int32 indexX, Int32 indexY, Int32 indexZ, Int32 indexW, UInt32 seed )
+	{
+		const Int32 PRIME1 = 198491317; // Large prime number with non-boring bits
+		const Int32 PRIME2 = 6542989; // Large prime number with distinct and non-boring bits
+		const Int32 PRIME3 = 357239; // Large prime number with distinct and non-boring bits
+		return SquirrelNoise5( indexX + (PRIME1 * indexY) + (PRIME2 * indexZ) + (PRIME3 * indexW), seed );
+	}
+	
+	[MethodImpl(256)] public static		Single	Get1dNoiseZeroToOne		( Int32 index, UInt32 seed ) => OneOverMaxUint * SquirrelNoise5( index, seed );
+	[MethodImpl(256)] public static		Single	Get2dNoiseZeroToOne		( Int32 indexX, Int32 indexY, UInt32 seed ) => OneOverMaxUint * Get2dNoiseUint( indexX, indexY, seed );
+	[MethodImpl(256)] public static		Single	Get3dNoiseZeroToOne		( Int32 indexX, Int32 indexY, Int32 indexZ, UInt32 seed ) => OneOverMaxUint * Get3dNoiseUint( indexX, indexY, indexZ, seed );
+	[MethodImpl(256)] public static		Single	Get4dNoiseZeroToOne		( Int32 indexX, Int32 indexY, Int32 indexZ, Int32 indexT, UInt32 seed ) => OneOverMaxUint * Get4dNoiseUint( indexX, indexY, indexZ, indexT, seed );
+	
+	[MethodImpl(256)] public static		Single	Get1dNoiseNegOneToOne	( Int32 index, UInt32 seed ) => OneOverMaxInt * (Int32) SquirrelNoise5( index, seed );
+	[MethodImpl(256)] public static		Single	Get2dNoiseNegOneToOne	( Int32 indexX, Int32 indexY, UInt32 seed ) => OneOverMaxInt * (Int32) Get2dNoiseUint( indexX, indexY, seed );
+	[MethodImpl(256)] public static		Single	Get3dNoiseNegOneToOne	( Int32 indexX, Int32 indexY, Int32 indexZ, UInt32 seed ) => OneOverMaxInt * (Int32) Get3dNoiseUint( indexX, indexY, indexZ, seed );
+	[MethodImpl(256)] public static		Single	Get4dNoiseNegOneToOne	( Int32 indexX, Int32 indexY, Int32 indexZ, Int32 indexT, UInt32 seed ) => OneOverMaxInt * (Int32) Get4dNoiseUint( indexX, indexY, indexZ, indexT, seed );
 }
 
 public struct Rng
 {
-	UInt32 _state;
-	UInt32 _seed;
-
-	public Rng(UInt32 initialState, UInt32 seed)
-	{
-		_state = initialState;
-		_seed = seed;
-	}
+	public Rng(UInt32 initialState, UInt32 seed) { _state = initialState; _seed = seed; }
 	
-	UInt32 NextState()
-	{
-		_state = Noise.SquirrelNoise5((Int32)_state, _seed);
-		return _state;
-	}
+	private UInt32 _state;
+	private UInt32 _seed;
+
+	[MethodImpl(256)] public	Boolean	NextBool	( ) => NextState() > UInt32.MaxValue/2;
+
+	[MethodImpl(256)] public	UInt32	NextUInt	( ) => NextState();
+	[MethodImpl(256)] public	Int32	NextInt		( ) => (Int32)NextState();
+	[MethodImpl(256)] public	Single	NextFloat	( ) => math.asfloat(0x3f800000 | (NextState() >> 9)) - 1.0f;
+	
+	[MethodImpl(256)] public	UInt32	NextUInt	( UInt32 minInclusive, UInt32 maxExclusive )	=> (UInt32)(NextState() * (UInt64)(maxExclusive - minInclusive) >> 32) + minInclusive;
+	[MethodImpl(256)] public	Int32	NextInt		( Int32 minInclusive, Int32 maxExclusive )		=> (Int32)(NextState() * (UInt64)(UInt32)(maxExclusive - minInclusive) >> 32) + minInclusive;
+	[MethodImpl(256)] public	Single	NextFloat	( Single minInclusive, Single maxExclusive )	=> NextFloat() * (maxExclusive - minInclusive) + minInclusive;
+    
+	[MethodImpl(256)] private	UInt32	NextState	( )
+    {
+	    _state = Noise.SquirrelNoise5((Int32)_state, _seed);
+	    return _state;
+    }
 }
