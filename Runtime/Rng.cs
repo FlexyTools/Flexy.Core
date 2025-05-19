@@ -2,12 +2,18 @@ using System.Runtime.CompilerServices;
 
 namespace Flexy.Core;
 
+/// <summary>
+/// Squirrel Noise 5
+/// </summary>
 public static class Noise
 {
-	public const Double OneOverMaxUint	= 1.0f / 0xFFFFFFFF;
-	public const Double OneOverMaxInt	= 1.0f / 0x7FFFFFFF;
+	public const 	Double 	OneOverMaxUint	= 1.0f / 0xFFFFFFFF;
+	public const 	Double 	OneOverMaxInt	= 1.0f / 0x7FFFFFFF;
+	private const	Int32 	PRIME1 			= 198491317; // Large prime number with non-boring bits
+	private const	Int32 	PRIME2 			= 6542989; // Large prime number with distinct and non-boring bits
+	private const	Int32 	PRIME3 			= 357239; // Large prime number with distinct and non-boring bits
 	
-	[MethodImpl(256)] public static		UInt32	SquirrelNoise5			( Int32 val, UInt32 seed )
+	[MethodImpl(256)] private static	UInt32	SquirrelNoise5			( Int32 index, UInt32 seed )
 	{
 		//   From https://www.youtube.com/watch?v=LWFzPP8ZbdU
 		//   This version is SquirrelNoise5, which was posted on the author's Twitter: https://twitter.com/SquirrelTweets/status/1421251894274625536.
@@ -20,7 +26,7 @@ public static class Noise
 		const UInt32 SQ5_BIT_NOISE4 = 0xB79F3ABB;	// 10110111100111110011101010111011
 		const UInt32 SQ5_BIT_NOISE5 = 0x1b56c4f5;	// 00011011010101101100010011110101
 		
-		var mangledBits = (UInt32) val;
+		var mangledBits = (UInt32) index;
 		mangledBits 	*= SQ5_BIT_NOISE1;
 		mangledBits 	+= seed;
 		mangledBits 	^= (mangledBits  >> 9);
@@ -36,29 +42,11 @@ public static class Noise
 		return mangledBits;
 	}
 	
-	[MethodImpl(256)] public static		UInt32	Get1dNoiseUint			( Int32 indexX, UInt32 seed )
-	{
-		return SquirrelNoise5( indexX, seed );
-	}
-	[MethodImpl(256)] public static		UInt32	Get2dNoiseUint			( Int32 indexX, Int32 indexY, UInt32 seed )
-	{
-		const Int32 PRIME_NUMBER = 198491317; // Large prime number with non-boring bits
-		return SquirrelNoise5( indexX + (PRIME_NUMBER * indexY), seed );
-	}
-	[MethodImpl(256)] public static		UInt32  Get3dNoiseUint			( Int32 indexX, Int32 indexY, Int32 indexZ, UInt32 seed )
-	{
-		const Int32 PRIME1 = 198491317; // Large prime number with non-boring bits
-		const Int32 PRIME2 = 6542989; // Large prime number with distinct and non-boring bits
-		return SquirrelNoise5( indexX + (PRIME1 * indexY) + (PRIME2 * indexZ), seed );
-	}
-	[MethodImpl(256)] public static		UInt32  Get4dNoiseUint			( Int32 indexX, Int32 indexY, Int32 indexZ, Int32 indexW, UInt32 seed )
-	{
-		const Int32 PRIME1 = 198491317; // Large prime number with non-boring bits
-		const Int32 PRIME2 = 6542989; // Large prime number with distinct and non-boring bits
-		const Int32 PRIME3 = 357239; // Large prime number with distinct and non-boring bits
-		return SquirrelNoise5( indexX + (PRIME1 * indexY) + (PRIME2 * indexZ) + (PRIME3 * indexW), seed );
-	}
-	
+	[MethodImpl(256)] public static		UInt32	Get1dNoiseUint			( Int32 index, UInt32 seed ) => SquirrelNoise5( index, seed );
+	[MethodImpl(256)] public static		UInt32	Get2dNoiseUint			( Int32 indexX, Int32 indexY, UInt32 seed ) => SquirrelNoise5( indexX + (PRIME1 * indexY), seed );
+	[MethodImpl(256)] public static		UInt32  Get3dNoiseUint			( Int32 indexX, Int32 indexY, Int32 indexZ, UInt32 seed ) => SquirrelNoise5( indexX + (PRIME1 * indexY) + (PRIME2 * indexZ), seed );
+	[MethodImpl(256)] public static		UInt32  Get4dNoiseUint			( Int32 indexX, Int32 indexY, Int32 indexZ, Int32 indexW, UInt32 seed ) => SquirrelNoise5( indexX + (PRIME1 * indexY) + (PRIME2 * indexZ) + (PRIME3 * indexW), seed );
+
 	[MethodImpl(256)] public static		Single	Get1dNoiseZeroToOne		( Int32 index, UInt32 seed ) => (Single)(OneOverMaxUint * SquirrelNoise5( index, seed ));
 	[MethodImpl(256)] public static		Single	Get2dNoiseZeroToOne		( Int32 indexX, Int32 indexY, UInt32 seed ) => (Single)(OneOverMaxUint * Get2dNoiseUint( indexX, indexY, seed ));
 	[MethodImpl(256)] public static		Single	Get3dNoiseZeroToOne		( Int32 indexX, Int32 indexY, Int32 indexZ, UInt32 seed ) => (Single)(OneOverMaxUint * Get3dNoiseUint( indexX, indexY, indexZ, seed ));
@@ -70,6 +58,9 @@ public static class Noise
 	[MethodImpl(256)] public static		Single	Get4dNoiseNegOneToOne	( Int32 indexX, Int32 indexY, Int32 indexZ, Int32 indexT, UInt32 seed ) => (Single)(OneOverMaxInt * (Int32) Get4dNoiseUint( indexX, indexY, indexZ, indexT, seed ));
 }
 
+/// <summary>
+/// Squirrel Noise Rng
+/// </summary>
 public struct Rng
 {
 	public Rng(UInt32 initialState, UInt32 seed) { _state = initialState; _seed = seed; }
@@ -89,7 +80,7 @@ public struct Rng
     
 	[MethodImpl(256)] private	UInt32	NextState	( )
     {
-	    _state = Noise.SquirrelNoise5((Int32)_state, _seed);
+	    _state = Noise.Get1dNoiseUint((Int32)_state, _seed);
 	    return _state;
     }
 }
