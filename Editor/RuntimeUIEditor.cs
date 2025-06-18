@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Object = System.Object;
+using Object = UnityEngine.Object;
 
 namespace Flexy.Core.Editor
 {
@@ -47,23 +47,30 @@ namespace Flexy.Core.Editor
         
         public				void	ExposedPropsAndMethodsGUI	( )				
         {
-			if( targets.Length == 1 )
+			if( targets.Length == 1 && EditorApplication.isPlaying )
 				DrawRuntimeGUI(target);
         }
         public				void	DrawRuntimeGUI			( Object obj )	
         { 
-			var methodInfos		= obj.GetType( ).GetMethods( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy );
- 
-			foreach ( var methodInfo in methodInfos )
+			var type = obj.GetType( );
+        
+			while ( type != null && type != typeof(Object) )
 			{
-				var attribute = methodInfo.GetCustomAttribute<RuntimeInspectorUIAttribute>( );
-				if ( attribute != null )
+				var methodInfos		= type.GetMethods( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic );
+	 
+				foreach ( var methodInfo in methodInfos )
 				{
-					methodInfo.Invoke( obj, Array.Empty<Object>() );
-					
-					if( attribute.Repaint )
-						Repaint( );
+					var attribute = methodInfo.GetCustomAttribute<RuntimeInspectorUIAttribute>( );
+					if ( attribute != null )
+					{
+						methodInfo.Invoke( obj, Array.Empty<System.Object>() );
+						
+						if( attribute.Repaint )
+							Repaint( );
+					}
 				}
+				
+				type = type.BaseType;
 			}
 		}
 	}
