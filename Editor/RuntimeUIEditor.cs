@@ -56,7 +56,7 @@ namespace Flexy.Core.Editor
         
 			while ( type != null && type != typeof(Object) )
 			{
-				var methodInfos		= type.GetMethods( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic );
+				var methodInfos		= type.GetMethods( BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic );
 	 
 				foreach ( var methodInfo in methodInfos )
 				{
