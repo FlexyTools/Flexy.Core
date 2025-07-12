@@ -73,6 +73,13 @@ namespace Flexy.Core
 
 		public			EInitState		InitState				{ get; protected set; }
 
+		public static	GameContext		GetCached				( ref GameContext ctx, Component callSource )
+		{
+			if( ctx is not { IsAlive: true } )
+				ctx = GetCtx(callSource);
+
+			return ctx;
+		}
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
 		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene ); // go.transform.root.TryGetComponent<GameContext>( out var rootCtx ) ? rootCtx : GetCtx( go.scene );
 		public static 	GameContext		GetCtx					( Scene scene )		=> _sceneToCtxRegistry.TryGetValue( scene, out var ctx ) ? ctx : Global;
