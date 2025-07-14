@@ -1,39 +1,19 @@
 ﻿using System.Linq;
 using System.Reflection;
-using System.Collections;
 using Flexy.AssetRefs;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
-#if VCONTAINER_PACKAGE
-using VContainer.Internal;
-using VContainer;
-using VContainer.Diagnostics;
-using VContainer.Unity;
-#endif
-
 namespace Flexy.Core
 {
 	[DefaultExecutionOrder(Int16.MinValue+200)]
-#if VCONTAINER_PACKAGE
-	public class GameContext : LifetimeScope
-#else
 	public class GameContext : MonoBehaviour
-#endif
 	{
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void StaticClear( )
 		{
 			_global = null;
 			_sceneToCtxRegistry.Clear( );
-
-#if UNITY_EDITOR && VCONTAINER_PACKAGE
-			var fld = typeof(DiagnositcsContext).GetField( "collectors", BindingFlags.Static | BindingFlags.NonPublic );
-			fld.SetValue( null, new Dictionary<string, DiagnosticsCollector>() );
-
-			var fld2 = typeof(DiagnositcsContext).GetField( "OnContainerBuilt", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static );
-			fld2.SetValue(null, null);
-#endif
 		}
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
 		private static void StaticBind( )
@@ -63,6 +43,7 @@ namespace Flexy.Core
 		private readonly	List<GameContext>	_children = new(4);
 		private				GameObject			_systems;
 		private				Boolean				_isAlive;
+		private				IGameContextExtension?	_ext;
 		
 		private static readonly		Dictionary<Scene, GameContext>	_sceneToCtxRegistry = new ( );
 		private readonly			Dictionary<Type, Object>		_registeredServicesDict	= new ( );
@@ -92,26 +73,11 @@ namespace Flexy.Core
 		public	Boolean					IsAlive					=> _isAlive;
 		public	String					Name					=> _name;
 
-		#if VCONTAINER_PACKAGE
-		protected override		void	Configure				( IContainerBuilder builder )
+		protected		void			Awake					( )		
 		{
-			foreach ( var group in _registeredServicesDict.GroupBy( p => p.Value, p => p.Key ) )
-			{
-				var rb = builder.RegisterInstance( group.Key );
-
-				foreach ( var type in group )
-					rb.As( type );
-			}
-		}
-		#endif
-
-		#if VCONTAINER_PACKAGE
-		protected override 
-		#else
-		protected		 		
-		#endif
-						void			Awake					( )		{
 			_isAlive = true;
+			
+			_ext = GetComponent<IGameContextExtension>( );
 			
 			if( _global == null )
 			{
@@ -122,9 +88,7 @@ namespace Flexy.Core
 			else if ( _parent == null )
 			{
 				_parent = transform.parent == null ? GetCtx(gameObject.scene) : GetCtx(transform.parent);
-				#if VCONTAINER_PACKAGE
-				parentReference.Object = _parent;
-				#endif
+				_ext?.SetParent(_parent);
 			}
 
 			if( String.IsNullOrWhiteSpace( _name ) )
@@ -159,9 +123,7 @@ namespace Flexy.Core
 
 			RegisterCtxServices( );
 
-			#if VCONTAINER_PACKAGE
-			base.Awake( );
-			#endif
+			_ext?.RegisterAdditionalServices( _registeredServicesDict );
 			
 			if( _registeredServicesDict.Count > 0 )
 			{
@@ -182,12 +144,7 @@ namespace Flexy.Core
 			if(_parent)
 				_parent._children.Remove( this );
 		}
-		#if VCONTAINER_PACKAGE
-		protected override 
-		#else
-		protected		 	
-		#endif
-						void			OnDestroy				( )		
+		protected		void			OnDestroy				( )		
 		{
 			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {_name} - OnDestroy \t parent:{_parent}", this );
 			
@@ -201,9 +158,6 @@ namespace Flexy.Core
 				if( pair.Value == this )
 					_sceneToCtxRegistry[pair.Key] = _parent;
 			}
-			#if VCONTAINER_PACKAGE
-			base.OnDestroy( );
-			#endif
 		}
 
 		public			void			SetName					( String newName )
@@ -213,10 +167,7 @@ namespace Flexy.Core
 		public			void			SetParent				( GameContext ctx )
 		{
 			_parent = ctx;
-			
-			#if VCONTAINER_PACKAGE
-			parentReference.Object = _parent;
-			#endif
+			_ext?.SetParent(_parent);
 		}
 		public 			void			RegisterCtxServices		( )
 		{
@@ -256,11 +207,10 @@ namespace Flexy.Core
 					return result;
 			}
 
-			#if VCONTAINER_PACKAGE
-			return Container.ResolveOrDefault<T>( );
-			#else
+			if (_ext != null)
+				return _ext.GetService<T>();
+			
 			return default;
-			#endif
 		}
 		public			void			SetService<T>			( T service )	where T : class
 		{
@@ -340,7 +290,7 @@ namespace Flexy.Core
 			}
 		}
 		
-		private static	String			GetDisplayServiceName	( Type svcType )
+		public static	String			GetDisplayServiceName	( Type svcType )
 		{
 			var result = "";
 
@@ -494,43 +444,6 @@ namespace Flexy.Core
 							GUILayout.Label( key != name ? $"{key} => {name}" : $"{name}" );
 						}
 					}
-					
-					#if VCONTAINER_PACKAGE
-					GUILayout.Space( 10 );
-					GUILayout.Label( "VContainer:" );
-					GUILayout.Space( 4 );
-					{
-						var registry	= (Registry)ctx.Container	.GetType().GetField( "registry",	BindingFlags.Instance | BindingFlags.NonPublic ).GetValue( ctx.Container );
-						var hashTable	=				registry	.GetType().GetField( "hashTable",	BindingFlags.Instance | BindingFlags.NonPublic ).GetValue( registry );
-						var table		= (IList)		hashTable	.GetType().GetField( "table",		BindingFlags.Instance | BindingFlags.NonPublic ).GetValue( hashTable );
-						
-						var typeField = default(FieldInfo);
-						
-						foreach ( IList arr in table )
-						{
-							if ( arr != null )
-								
-								foreach ( var item in arr )
-								{
-									if ( typeField == null )
-										typeField	= item.GetType().GetField( "Type", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public );
-									
-									var type = (Type)typeField.GetValue( item );
-									
-									if ( type == null )
-										continue;
-									
-									
-									var key			= GetDisplayServiceName(type);
-
-									if( key is "Object" or "LifetimeScope" or "IObjectResolver" or "EntryPointDispatcher" )
-										continue;
-									
-									GUILayout.Label( key );
-								}
-						}
-					}
-					#endif
 					
 					GUILayout.EndVertical();
 					GUILayout.EndHorizontal();
