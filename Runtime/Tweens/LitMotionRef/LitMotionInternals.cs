@@ -1,3 +1,4 @@
+#if LITMOTION_SUPPORT_UNITASK 
 using System;
 
 namespace LitMotion;
@@ -13,3 +14,4 @@ public static class LitMotionInternals
 		builder.buffer.UpdateAction		= bindDataBindedAction;
 	}
 }
+#endif
