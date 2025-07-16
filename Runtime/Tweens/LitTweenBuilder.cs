@@ -1,5 +1,6 @@
 ﻿#if LIT_MOTION_PACKAGE
 
+using System.Reflection;
 using LitMotion;
 using LitMotion.Adapters;
 using DelayType = LitMotion.DelayType;
@@ -60,19 +61,7 @@ public class LitTweenRunner : TweenBackend
 		
 		var bindData = tween.Data.BindData;
 		
-		switch(tween.Data.BindData.StateCount)
-		{
-			case 0: builder.Bind((Action<T>)bindData.BindedAction); break;
-			case 1: builder.Bind(bindData.State1, (Action<T, Object>)bindData.BindedAction); break;
-			case 2: builder.Bind(bindData.State1, bindData.State2, (Action<T, Object, Object>)bindData.BindedAction); break;
-			case 3: builder.Bind(bindData.State1, bindData.State2, bindData.State3, (Action<T, Object, Object, Object>)bindData.BindedAction); break;
-		}
-		
-		// builder.buffer.StateCount		= bindData.StateCount;
-		// builder.buffer.State0			= bindData.State1;
-		// builder.buffer.State1			= bindData.State2;
-		// builder.buffer.State2			= bindData.State3;
-		// builder.buffer.UpdateAction		= bindData.BindedAction;
+		LitMotionInternals.SetLitMotionBuilderBind( builder, bindData.StateCount, bindData.State1, bindData.State2, bindData.State3, bindData.BindedAction );
 		
 		return builder;
 	}
