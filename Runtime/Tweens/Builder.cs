@@ -27,9 +27,9 @@ public struct Builder<T, TLerp> where T : unmanaged where TLerp : unmanaged, ITw
 	public	Builder<T, TLerp> OnCancel				( Action callback )			{ Data.Callbacks.Canceled	= callback;		return this; }
 	
 	public	Builder<T, TLerp> BindTo				(							Action<T>				evaluator )	{ Data.BindData = TweenBindData.Create( evaluator );				return this; }
-	public	Builder<T, TLerp> BindTo<TO1>			( TO1 o1,					Action<TO1,T>			evaluator )	{ Data.BindData = TweenBindData.Create( evaluator, o1 );			return this; }
-	public	Builder<T, TLerp> BindTo<TO1, TO2>		( TO1 o1, TO2 o2,			Action<TO1,TO2,T>		evaluator )	{ Data.BindData = TweenBindData.Create( evaluator, o1, o2 );		return this; }
-	public	Builder<T, TLerp> BindTo<TO1, TO2, TO3>	( TO1 o1, TO2 o2, TO3 o3,	Action<TO1,TO2,TO3,T>	evaluator )	{ Data.BindData = TweenBindData.Create( evaluator, o1, o2, o3 );	return this; }
+	public	Builder<T, TLerp> BindTo<TO1>			( TO1 o1,					Action<T, TO1>			evaluator )	{ Data.BindData = TweenBindData.Create( evaluator, o1 );			return this; }
+	public	Builder<T, TLerp> BindTo<TO1, TO2>		( TO1 o1, TO2 o2,			Action<T, TO1,TO2>		evaluator )	{ Data.BindData = TweenBindData.Create( evaluator, o1, o2 );		return this; }
+	public	Builder<T, TLerp> BindTo<TO1, TO2, TO3>	( TO1 o1, TO2 o2, TO3 o3,	Action<T, TO1,TO2,TO3>	evaluator )	{ Data.BindData = TweenBindData.Create( evaluator, o1, o2, o3 );	return this; }
 	
 	public	TweenHandle Run( ) => TweenBackend.Ref.Run( this );
 }
@@ -113,9 +113,9 @@ public struct TweenBindData
 		switch ( StateCount )
 		{
 			case 0: UnsafeUtility.As<Object, Action<TValue>>						( ref _bindedAction )?.Invoke( value );							break;
-			case 1: UnsafeUtility.As<Object, Action<Object, TValue>>				( ref _bindedAction )?.Invoke( State1, value );					break;
-			case 2: UnsafeUtility.As<Object, Action<Object, Object, TValue>>		( ref _bindedAction )?.Invoke( State1, State2, value );			break;
-			case 3: UnsafeUtility.As<Object, Action<Object, Object, Object, TValue>>( ref _bindedAction )?.Invoke( State1, State2, State3, value );	break;
+			case 1: UnsafeUtility.As<Object, Action<TValue, Object>>				( ref _bindedAction )?.Invoke( value, State1 );					break;
+			case 2: UnsafeUtility.As<Object, Action<TValue, Object, Object>>		( ref _bindedAction )?.Invoke( value, State1, State2 );			break;
+			case 3: UnsafeUtility.As<Object, Action<TValue ,Object, Object, Object>>( ref _bindedAction )?.Invoke( value, State1, State2, State3 );	break;
 		}
 	}
 }
