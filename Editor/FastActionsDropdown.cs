@@ -44,12 +44,6 @@ public static class FastActionsDropdown
 		{
 			var menu = new GenericMenu();
 			
-			menu.AddItem( new( "Boss/Action_01" ), false, ()=>{} );
-			menu.AddItem( new( "Boss/Action_02" ), false, ()=>{} );
-			
-			menu.AddItem( new( "Room/Action_01" ), false, ()=>{} );
-			menu.AddItem( new( "Room/Action_02" ), false, ()=>{} );
-			
 			foreach ( var fa in _fastActions )
 				menu.AddItem( new( fa.Path ), true, ( ) => fa.Action( ) );
 			
