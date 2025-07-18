@@ -1,10 +1,10 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Object = UnityEngine.Object;
 
 namespace Flexy.Core.Editor
 {
@@ -75,3 +75,4 @@ namespace Flexy.Core.Editor
 		}
 	}
 }
+#endif
