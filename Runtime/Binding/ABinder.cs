@@ -9,28 +9,22 @@ namespace Flexy.Core.Binding
 
 		private Boolean _isInitialized;
 
-		public					Component		Component		
-	    {
-	        get { return _source.Component; }
-	    }
-		public					String			MemberName		
-	    {
-	        get { return _source.MemberName; }
-	    }
-		
+		public					Component		Component		=> _source.Component;
+		public					String			MemberName		=> _source.MemberName;
+
 		[ContextMenu ("Rebind")]
 		public                  void			Rebind			( )					
         {
-            SafeBind(  );
+            SafeBind();
         }
 
 		public override			String			ToString		( )					
-	  {
-		if( Component == null )
-			return name + "->" + GetType( ).Name;
+		{
+			if( Component == null )
+				return name + "->" + GetType( ).Name;
 
-	    return name + "->" + GetType( ).Name + " On " + Component.name + "->" + Component.GetType( ).Name + "." + _source.MemberName;
-	  }
+			return name + "->" + GetType( ).Name + " On " + Component.name + "->" + Component.GetType( ).Name + "." + _source.MemberName;
+		}
 
 		protected abstract		void			Bind			( Boolean init );
 
@@ -62,14 +56,14 @@ namespace Flexy.Core.Binding
 				target2.DetachBinder( this );
 		}
 
-		protected				void			Init<TArg>					( ref Action<TArg> action, Boolean requereSetter = true )	
+		protected				void			Init<TArg>		( ref Action<TArg> action,	Boolean requereSetter = true )	
 		{
 			if( !_source.Component && (Application.isEditor || Debug.isDebugBuild) )
 				Debug.LogError		( $"Binder {GetType( ).Name} on game object {transform.name} has not Source set", this  );
 
 			Init( ref action, ref _source, requereSetter );
 		}
-		protected				void			Init<TResult>				( ref Func<TResult> func, Boolean requireGetter = true )	
+		protected				void			Init<TResult>	( ref Func<TResult> func,	Boolean requireGetter = true )	
 		{
 			if( !_source.Component && (Application.isEditor || Debug.isDebugBuild) )
 				Debug.LogError		( $"Binder {GetType( ).Name} on game object {transform.name} has not Source set", this  );
@@ -77,7 +71,7 @@ namespace Flexy.Core.Binding
 			Init	( ref func, ref _source, requireGetter );
 		}
 	
-		protected				void			Init<TArg>					( ref Action<TArg> action, ref BindSource bindSource, Boolean requereSetter = true )		
+		protected				void			Init<TArg>		( ref Action<TArg> action,	ref BindSource bindSource, Boolean requireSetter = true )		
 		{
 			try
 			{
@@ -117,13 +111,13 @@ namespace Flexy.Core.Binding
 					Debug.LogException(ex, this);
 			}
 
-			if (requereSetter)
+			if (requireSetter)
 				Debug.LogError("[ABinder] - Init Fail: " + bindSource.Component.name + "->" + bindSource.Component.GetType().Name + "." + bindSource.MemberName + " has no setter", this);
 
 			//else
 			//    Debug.Log("[ABinder] - Property " + bindSource.Target.name + "->" + bindSource.Target.GetType().Name + "." + bindSource.MemberName + " has no setter. Binder set logic will not work.", this);
 		}
-		protected				void			Init<TResult>				( ref Func<TResult> action, ref BindSource bindSource, Boolean requireGetter = true )		
+		protected				void			Init<TResult>	( ref Func<TResult> action,	ref BindSource bindSource, Boolean requireGetter = true )		
         {
             try
             {
@@ -176,7 +170,7 @@ namespace Flexy.Core.Binding
 			}
         }
 
-		protected void ReportMissedTargetError( Type targetType )
+		protected				void			ReportMissedTargetError		( Type targetType )	
 		{
 			Debug.Log( $"[{GetType().Name}] There is no target {targetType.Name}, binder path { GetHierarchyName( transform ) }, binder is disabled", this );
 			enabled = false;
@@ -200,7 +194,7 @@ namespace Flexy.Core.Binding
 			SafeBind	(  );
 		}
 
-		private					Func<TResult>	BindMethod<TResult>			( Object target, MethodInfo method, String parameters )	
+		private					Func<TResult>	BindMethod<TResult>					( Object target, MethodInfo method, String parameters )	
 		{
 			var @params = method.GetParameters ( );
 			switch( @params.Length )
@@ -301,8 +295,7 @@ namespace Flexy.Core.Binding
 
 			return null;
 		}
-		
-		private Func<TResult> CreateGetDelegate<TParam,TResult> ( Object target, MethodInfo method, TParam param )
+		private					Func<TResult>	CreateGetDelegate<TParam,TResult>	( Object target, MethodInfo method, TParam param )		
 		{
 			if ( !method.ReturnType.IsEnum )
 				return ( new OneParamBinder<TParam,TResult>{ Param = param, Function = (Func<TParam, TResult>)Delegate.CreateDelegate( typeof(Func<TParam, TResult>), target, method ) } ).GetValue;
@@ -357,8 +350,7 @@ namespace Flexy.Core.Binding
 			}
 			#endif
 		}
-
-		private					Action<TArg>	BindSetterMethod<TArg>		( Object target, MethodInfo method, String parameters )	
+		private					Action<TArg>	BindSetterMethod<TArg>				( Object target, MethodInfo method, String parameters )	
 		{
 			var @params = method.GetParameters ( );
 
@@ -401,7 +393,7 @@ namespace Flexy.Core.Binding
 			return null;
 		}		
 
-		private static String GetHierarchyName( Transform t, Int32 steps = 99 )
+		private static			String			GetHierarchyName	( Transform t, Int32 steps = 99 )	
 		{
 			if ( t == null ) throw new ArgumentNullException( nameof( t ) );
 			
@@ -469,51 +461,7 @@ namespace Flexy.Core.Binding
 				Action( Param, param );
 			}
 		}		
-
-		//
-		//[Serializable]
-		//private class PropertyRef
-		//{
-		//	[SerializeField]
-		//	private					Component		_target;
-		//	[SerializeField]
-		//	private					String			_property;
-
-		//	public					Func<TType>		Bind<TType>					( )								
-		//	{
-		//		var @delegate = Bind ( typeof(TType) );
-		//		return (Func<TType>)@delegate;
-		//	}
-
-		//	private					Delegate		Bind						( Type returnType )				
-		//	{
-		//		var type				= _target.GetType	( );
-		//		var prop				= type.GetProperty	( _property, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic );
-		//		var propGetter			= prop.GetGetMethod	( true );
-
-		//		if( prop.PropertyType.IsSubclassOf ( typeof(Boolean) ) )
-		//			return prop.PropertyType == returnType ? Delegate.CreateDelegate( typeof(Func<Boolean>), _target, propGetter )	: ConvertToString ( (Func<Boolean>)Delegate.CreateDelegate( typeof(Func<Boolean>), _target, propGetter ) );
-
-		//		if( prop.PropertyType.IsSubclassOf ( typeof(Int32) ) )
-		//			return prop.PropertyType == returnType ? Delegate.CreateDelegate( typeof(Func<Int32>), _target, propGetter )	: ConvertToString ( (Func<Int32>)Delegate.CreateDelegate( typeof(Func<Int32>), _target, propGetter ) );
-
-		//		if( prop.PropertyType.IsSubclassOf ( typeof(Single) ) )
-		//			return prop.PropertyType == returnType ? Delegate.CreateDelegate( typeof(Func<Single>), _target, propGetter )	: ConvertToString ( (Func<Single>)Delegate.CreateDelegate( typeof(Func<Single>), _target, propGetter ) );
-
-		//		if( prop.PropertyType.IsSubclassOf ( typeof(String) ) )
-		//			return prop.PropertyType == returnType ? Delegate.CreateDelegate( typeof(Func<String>), _target, propGetter )	: ConvertToString ( (Func<String>)Delegate.CreateDelegate( typeof(Func<String>), _target, propGetter ) );
-
-		//		if( prop.PropertyType.IsSubclassOf ( typeof(Vector3) ) )
-		//			return prop.PropertyType == returnType ? Delegate.CreateDelegate( typeof(Func<Vector3>), _target, propGetter )	: ConvertToString ( (Func<Vector3>)Delegate.CreateDelegate( typeof(Func<Vector3>), _target, propGetter ) );
-
-		//		throw new NotImplementedException( "Binder of type " + prop.PropertyType + "is not inmplemented!" );
-		//	}
-			
-		//	private					Func<String>	ConvertToString<TType>		( Func<TType> @delegate )		
-		//	{
-		//		return ( ) => @delegate ( ).ToString ( );
-		//	}
-		//}
+		
 		public static class Internal
 		{
 			public static void RebindOn ( ABinder binder )
