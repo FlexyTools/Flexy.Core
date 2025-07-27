@@ -456,9 +456,9 @@ namespace Flexy.Core
 	
 	public static class GameContextExt
 	{
-		public static T GetService<T>( this GameObject context )	where T:class => context.scene.GetService<T>( );
-		public static T GetService<T>( this MonoBehaviour context )	where T:class => context.gameObject.scene.GetService<T>( );
-		public static T GetService<T>( this Scene context )			where T:class => GameContext.GetCtx( context ).GetService<T>();
+		public static T GetService<T>( this GameObject src )	where T:class => src.CompareTag( "CtxRoot" ) ? src.GetComponent<GameContext>().GetService<T>() : src.scene.GetService<T>();
+		public static T GetService<T>( this MonoBehaviour src )	where T:class => src.gameObject.GetService<T>();
+		public static T GetService<T>( this Scene src )			where T:class => GameContext.GetCtx( src ).GetService<T>();
 	}
 	
 	public enum EInitState
