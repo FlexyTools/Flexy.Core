@@ -1,82 +1,75 @@
 ﻿using System.Buffers;
-using System.Collections;
+using System.Runtime.CompilerServices;
 
-namespace Flexy.Core;
-
-public struct TempList<T> : IReadOnlyList<T>, IDisposable
+namespace Flexy.Core
 {
-	public static TempList<T> Rent( Int32 minCapacity )	
+	public struct TempList<T> : IDisposable
 	{
-		return new TempList<T>{ _array = ArrayPool<T>.Shared.Rent( minCapacity ) };
-	}
-	public static TempList<T> Rent( IList<T> initial )	
-	{
-		var list = new TempList<T>{ _array = ArrayPool<T>.Shared.Rent( initial.Count ) };
+		public static TempList<T> Rent( Int32 minCapacity )	
+		{
+			return new TempList<T>{ _array = ArrayPool<T>.Shared.Rent( minCapacity ) };
+		}
+		public static TempList<T> Rent( IList<T> initial )	
+		{
+			var list = new TempList<T>{ _array = ArrayPool<T>.Shared.Rent( initial.Count ) };
 			
-		list.AddRange( initial );
+			list.AddRange( initial );
 			
-		return list;
-	}
+			return list;
+		}
 		
-	private T[]		_array;
-	private Int32	_count;
+		private T[]		_array;
+		private Int32	_count;
 
-	public Int32 Count => _count;
+		public Int32 Count => _count;
 
-	public T this[Int32 index]
-	{
-		get
+		public T this[Int32 index]
 		{
-			if ( index >= 0 && index < _count )
-				return  _array[ index ];
-			throw new ArgumentOutOfRangeException( nameof(index) );
+			get
+			{
+				if ( index >= 0 && index < _count )
+					return  _array[ index ];
+				throw new ArgumentOutOfRangeException( nameof(index) );
+			}
+			set
+			{
+				if ( index >= 0 && index < _count )
+					_array[ index ] = value;
+				throw new ArgumentOutOfRangeException( nameof(index) );
+			}
 		}
-		set
+		
+		public void Dispose	( )
 		{
-			if ( index >= 0 && index < _count )
-				_array[ index ] = value;
-			throw new ArgumentOutOfRangeException( nameof(index) );
-		}
-	}
-
-	public void Dispose()
-	{
-		if( _array != null )
-			ArrayPool<T>.Shared.Return( _array );
+			if( _array != null )
+				ArrayPool<T>.Shared.Return( _array );
 					
-		_array = null;
-	}
+			_array = null;
+		}
 			
-	public void Add		( T item )	
-	{
-		if( _array.Length <= _count ) //array fully filled
+		public void Add		( T item )	
 		{
-			var biggerArray = ArrayPool<T>.Shared.Rent( _count * 15 / 10 );
-			_array.CopyTo( biggerArray, 0 );
-			ArrayPool<T>.Shared.Return( _array );
-			_array = biggerArray;
+			if( _array.Length <= _count ) //array fully filled
+			{
+				var biggerArray = ArrayPool<T>.Shared.Rent( _count * 15 / 10 );
+				_array.CopyTo( biggerArray, 0 );
+				ArrayPool<T>.Shared.Return( _array );
+				_array = biggerArray;
+			}
+		
+			var index = _count;
+			_count++;
+			_array[index] = item;
+		}
+		public void AddRange( IEnumerable<T> items )
+		{
+			foreach ( var item in items )
+				Add( item );
 		}
 		
-		var index = _count;
-		_count++;
-		_array[index] = item;
-	}
-	public void AddRange( IEnumerable<T> items )
-	{
-		foreach ( var item in items )
-			Add( item );
-	}
-		
-	public IEnumerator<T> GetEnumerator( )
-	{
-		var a	= _array;
-		var max	= _count;
-				
-		for( var i = 0; i < max; i++ )
-			yield return a[i];
-	}
-	IEnumerator IEnumerable.GetEnumerator( )
-	{
-		return GetEnumerator( );
+		[MethodImpl(256)]
+		public Span<T>AsSpan( ) => _array.AsSpan( .._count );
+		[MethodImpl(256)]
+		public Span<T>.Enumerator GetEnumerator() => AsSpan().GetEnumerator();
 	}
 }
