@@ -54,13 +54,6 @@ namespace Flexy.Core
 
 		public			EInitState		InitState				{ get; protected set; }
 
-		public static	GameContext		GetCached				( ref GameContext ctx, Component callSource )
-		{
-			if( ctx is not { IsAlive: true } )
-				ctx = GetCtx(callSource);
-
-			return ctx;
-		}
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
 		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene ); // go.transform.root.TryGetComponent<GameContext>( out var rootCtx ) ? rootCtx : GetCtx( go.scene );
 		public static 	GameContext		GetCtx					( Scene scene )		=> _sceneToCtxRegistry.TryGetValue( scene, out var ctx ) ? ctx : Global;
@@ -466,5 +459,25 @@ namespace Flexy.Core
 		InProgress = 0,
 		InitFail = 1,
 		Done = 2,
+	}
+	
+	public interface ICachedContext
+	{
+		public GameContext	Ctx			{get;set;}
+		public Component	CallSource	{get;set;}
+	}
+	
+	public static class ICachedContextExt
+	{
+		public static	T	GetCached<T>	( this ref T cache, Component callSource ) where T:struct, ICachedContext
+		{
+			if (cache.Ctx is { IsAlive: true }) 
+				return cache;
+				
+			cache.Ctx = GameContext.GetCtx(callSource);
+			cache.CallSource = callSource;
+
+			return cache;
+		}
 	}
 }
