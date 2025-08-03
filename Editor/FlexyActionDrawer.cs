@@ -4,7 +4,6 @@ using UnityEngine.UIElements;
 
 namespace Flexy.Core.Editor
 {
-
 	[CustomPropertyDrawer(typeof(FlexyAction))]
 	public class FlexyActionDrawer : PolymorphPropertyDrawer
 	{
