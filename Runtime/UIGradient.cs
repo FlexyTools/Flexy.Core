@@ -7,8 +7,8 @@ namespace Flexy.Core
 	{
 		[SerializeField]	Color		_topLeft 		= Color.white;
 		[SerializeField]	Color		_topRight 		= Color.white;
-		[SerializeField]	Color		_bottomRight 	= Color.white;
 		[SerializeField]	Color		_bottomLeft 	= Color.white;
+		[SerializeField]	Color		_bottomRight 	= Color.white;
 		[Range(-180f, 180f)]
 		[SerializeField]	Single		_angle			= 0f;
 		[SerializeField]	Boolean		_ignoreRatio	= true;
