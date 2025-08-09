@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Flexy.Core
 {
-	public class SetupInvariantCultureService : MonoBehaviour, IService
+	public class Setup_InvariantCulture : MonoBehaviour, IService
 	{
 		public void OrderedInit( GameContext ctx )
 		{

@@ -1,8 +1,8 @@
 ﻿namespace Flexy.Core.Tweens
 {
-	public class FlexyTweenService : MonoBehaviour, IService
+	public class Service_TweenRunner : MonoBehaviour, IService
 	{
-		public static FlexyTweenService _service;
+		public static Service_TweenRunner _service;
 		private readonly Dictionary<Int64, TweenRunner> _runners = new( );
 		
 		public	TweenHandle		Run<T, TLerp>	( Builder<T, TLerp> tween ) where T : unmanaged where TLerp : unmanaged, ITweenLerper<T>	

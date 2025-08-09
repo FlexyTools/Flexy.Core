@@ -1,6 +1,6 @@
 namespace Flexy.Core.GameContexts
 {
-	public class LogUnobservedTaskExceptionsService: MonoBehaviour, IService
+	public class Setup_TaskExceptionsLogger: MonoBehaviour, IService
 	{
 		public void OrderedInit(GameContext ctx)
 		{
