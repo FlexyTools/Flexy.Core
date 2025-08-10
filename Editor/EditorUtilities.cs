@@ -8,7 +8,7 @@ namespace Flexy.Core.Editor;
 
 public static class EditorUtilities
 {
-	[MenuItem( "Assets/Copy Guid", false, 20 )]
+	[MenuItem( "Assets/Copy Guid", priority = 20 )]
 	private static	void	CopyGuid			( )		
 	{
 		var assetPath = AssetDatabase.GetAssetPath( Selection.activeObject );
@@ -63,7 +63,7 @@ public static class EditorUtilities
 		}
 	}
 	
-	[MenuItem("CONTEXT/Object/Ping!")]
+	[MenuItem( "CONTEXT/Object/Ping!" )]
 	private static	void	Ping				( MenuCommand command )	
 	{
 		EditorGUIUtility.PingObject( command.context );
