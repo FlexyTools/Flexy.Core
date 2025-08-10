@@ -8,8 +8,8 @@ namespace Flexy.Core.Editor;
 
 public static class EditorUtilities
 {
-	[MenuItem("Assets/Copy Guid", false, 20)]
-	private static void CopyGuid( )
+	[MenuItem( "Assets/Copy Guid", false, 20 )]
+	private static	void	CopyGuid			( )		
 	{
 		var assetPath = AssetDatabase.GetAssetPath( Selection.activeObject );
 		if (String.IsNullOrEmpty( assetPath ))
@@ -30,14 +30,14 @@ public static class EditorUtilities
 		}
 	}
 
-	[MenuItem("Assets/Copy Guid", true)]
-	private static Boolean ValidateCopyGuid( )
+	[MenuItem( "Assets/Copy Guid", true )]
+	private static	Boolean	ValidateCopyGuid	( )		
 	{
 		return Selection.activeObject != null && !String.IsNullOrEmpty( AssetDatabase.GetAssetPath( Selection.activeObject ) );
 	}
 	
 	[MenuItem( "Assets/Reserialize Assets", priority = 40 )]
-	private	static		void		ReserializeAssets		( )		
+	private	static	void	ReserializeAssets	( )		
 	{
 		var path	= AssetDatabase.GetAssetPath(Selection.activeObject);
 		var paths	= new List<String>();
@@ -61,5 +61,11 @@ public static class EditorUtilities
 		{
 			AssetDatabase.StopAssetEditing		();
 		}
+	}
+	
+	[MenuItem("CONTEXT/Object/Ping!")]
+	private static	void	Ping				( MenuCommand command )	
+	{
+		EditorGUIUtility.PingObject( command.context );
 	}
 }

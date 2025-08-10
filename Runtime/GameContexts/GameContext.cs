@@ -463,8 +463,8 @@ namespace Flexy.Core
 	
 	public interface ICachedContext
 	{
-		public GameContext	Ctx			{get;set;}
-		public Component	CallSource	{get;set;}
+		public GameContext	Ctx			{ get; set; }
+		public Component	CallSource	{ get; set; }
 	}
 	
 	public static class ICachedContextExt
