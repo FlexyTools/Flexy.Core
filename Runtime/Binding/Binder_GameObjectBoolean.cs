@@ -1,7 +1,7 @@
 ﻿namespace Flexy.Core.Binding
 {
 	[BindTo(typeof(Boolean))]
-	public class GameObjectBooleanBinder : ABinder
+	public class Binder_GameObjectBoolean : Binder
 	{
 		[SerializeField]	Boolean			_disableObjectsOnAwake;
 		[SerializeField]	GameObject		_true;

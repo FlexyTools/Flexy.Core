@@ -3,7 +3,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Flexy.Core.Binding
 {
-	public class BindableDataStore : APropertyBindableBehaviour
+	public class BindableDataStore : BindableBehaviour
 	{
 		[SerializeField] private String[]	_keys;
 		[SerializeField] private GameObject	_exposedObject;

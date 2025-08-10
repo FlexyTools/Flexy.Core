@@ -2,7 +2,7 @@
 
 namespace Flexy.Core.Binding
 {
-	public abstract class ABinder : MonoBehaviour
+	public abstract class Binder : MonoBehaviour
 	{
 		[BindTo(typeof(void))]
 		[SerializeField]	private	BindSource _source;
@@ -464,7 +464,7 @@ namespace Flexy.Core.Binding
 		
 		public static class Internal
 		{
-			public static void RebindOn ( ABinder binder )
+			public static void RebindOn ( Binder binder )
 			{
 				binder.RebindOnPropertyChanged( );
 			}

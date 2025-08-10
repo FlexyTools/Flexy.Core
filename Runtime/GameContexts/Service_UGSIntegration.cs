@@ -4,7 +4,7 @@ using Unity.Services.Core;
 
 namespace Flexy.Core
 {
-    public class UGSIntegrationService : MonoBehaviour, IServiceAsync
+    public class Service_UGSIntegration : MonoBehaviour, IServiceAsync
     {
 		public async UniTask OrderedInitAsync( GameContext ctx )
 		{

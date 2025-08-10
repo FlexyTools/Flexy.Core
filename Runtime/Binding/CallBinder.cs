@@ -30,17 +30,6 @@ namespace Flexy.Core.Binding
 
 				action = BindMethod( @this, target, method, props );
 				return;
-				//var parameters		= method.GetParameters ( );
-
-				//if( parameters.Length == 1 && parameters[0].ParameterType != typeof(Object) )
-				//	continue;
-
-				//if( parameters.Length == 1 )
-				//	actionObject	= (Action<Object>)Delegate.CreateDelegate( typeof(Action<Object>), target, method );
-				//else
-				//	action			= (Action)Delegate.CreateDelegate( typeof(Action), target, method );
-
-				//return;
 			}
 		}
 		private static	Action	BindMethod			( MonoBehaviour @this, Object target, MethodInfo method, String parameters )	

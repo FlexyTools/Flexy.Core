@@ -2,11 +2,11 @@ using System.Linq;
 
 namespace Flexy.Core.Binding
 {
-	public abstract class APropertyBindableBehaviour : MonoBehaviour, IBindersNotifier
+	public abstract class BindableBehaviour : MonoBehaviour, IBindersNotifier
 	{
 		protected			Boolean				_isBindUnready	= false;
 
-		private readonly	Dictionary<String, List<ABinder>>	_attachedBinders		= new Dictionary<String, List<ABinder>>( );
+		private readonly	Dictionary<String, List<Binder>>	_attachedBinders		= new Dictionary<String, List<Binder>>( );
     
 		public				Boolean				ReadyForBind			
 		{
@@ -14,16 +14,16 @@ namespace Flexy.Core.Binding
 			set => _isBindUnready = !value;
 		}
 
-		public		void			AttachBinder				( ABinder binder )	
+		public		void			AttachBinder				( Binder binder )	
 		{
 			if( !_attachedBinders.TryGetValue( binder.MemberName, out var list ) )
-				_attachedBinders.Add( binder.MemberName, ( list = new List<ABinder>( ) ) );
+				_attachedBinders.Add( binder.MemberName, ( list = new List<Binder>( ) ) );
 			
 			list.Remove( binder );
 			list.Add( binder );
 			
 		}
-		public		void			DetachBinder				( ABinder binder )	
+		public		void			DetachBinder				( Binder binder )	
 		{
 			if( _attachedBinders.TryGetValue( binder.MemberName, out var list ) )
 				list.Remove( binder );
@@ -90,7 +90,7 @@ namespace Flexy.Core.Binding
 			
 			//Profiler.BeginSample( $"Do Rebind Property: {name}" );
 			
-			using var tempList = TempList<ABinder>.Rent( list.Count );
+			using var tempList = TempList<Binder>.Rent( list.Count );
 
 			try
 			{
@@ -122,7 +122,7 @@ namespace Flexy.Core.Binding
 
 					try
 					{
-						ABinder.Internal.RebindOn( binder );
+						Binder.Internal.RebindOn( binder );
 					}
 					catch( Exception ex )
 					{
@@ -166,7 +166,7 @@ namespace Flexy.Core.Binding
 					GUILayout.Space(8);
 					
 					foreach ( var item in binderList.Value )
-						UnityEditor.EditorGUILayout.ObjectField( new GUIContent( item.MemberName ), item, typeof(ABinder), true );	
+						UnityEditor.EditorGUILayout.ObjectField( new GUIContent( item.MemberName ), item, typeof(Binder), true );	
 				}
 			}
 			finally
@@ -178,7 +178,7 @@ namespace Flexy.Core.Binding
 	}
 	
 	#if UNITY_EDITOR
-	[UnityEditor.CustomEditor( typeof(APropertyBindableBehaviour), true), UnityEditor.CanEditMultipleObjects]
+	[UnityEditor.CustomEditor( typeof(BindableBehaviour), true), UnityEditor.CanEditMultipleObjects]
 	public class Editor : Flexy.Core.Editor.RuntimeUIEditor{ } 
 	#endif
 }

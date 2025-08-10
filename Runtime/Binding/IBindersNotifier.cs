@@ -7,7 +7,7 @@
 			get;
 		}
 		
-		void AttachBinder( ABinder binder );
-		void DetachBinder( ABinder binder );
+		void AttachBinder( Binder binder );
+		void DetachBinder( Binder binder );
 	}
 }

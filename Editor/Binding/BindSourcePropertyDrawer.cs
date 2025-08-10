@@ -5,11 +5,12 @@ using System.Reflection;
 using Flexy.Core.Binding;
 using UnityEditor;
 using UnityEngine;
+using Binder = Flexy.Core.Binding.Binder;
 using Object = System.Object;
 
 namespace Flexy.Core.Editor.Binding
 {
-	[CustomPropertyDrawer(typeof(ABinder.BindSource), true)]
+	[CustomPropertyDrawer(typeof(Binder.BindSource), true)]
 	public class BindSourcePropertyDrawer : PropertyDrawer
 	{
 		private		List<Component>		_properties;
