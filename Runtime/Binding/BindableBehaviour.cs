@@ -142,7 +142,7 @@ namespace Flexy.Core.Binding
 		
 		
 		#if UNITY_EDITOR
-		[RuntimeInspectorUI]
+		[RuntimeInspectorGui]
 		internal void RuntimeUI()
 		{
 			if( !UnityEditor.EditorApplication.isPlaying || !gameObject.scene.IsValid( ) )
@@ -179,6 +179,6 @@ namespace Flexy.Core.Binding
 	
 	#if UNITY_EDITOR
 	[UnityEditor.CustomEditor( typeof(BindableBehaviour), true), UnityEditor.CanEditMultipleObjects]
-	public class Editor : Flexy.Core.Editor.RuntimeUIEditor{ } 
+	public class Editor : Flexy.Core.Editor.Editor_WithRuntimeGui{ } 
 	#endif
 }

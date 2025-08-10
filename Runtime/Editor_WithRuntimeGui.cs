@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace Flexy.Core.Editor
 {
     [CustomEditor( typeof(MonoBehaviour), true), CanEditMultipleObjects]
-    public class RuntimeUIEditor : UnityEditor.Editor 
+    public class Editor_WithRuntimeGui : UnityEditor.Editor 
     {
 	    protected	VisualElement	_root;
 	    
@@ -33,7 +33,7 @@ namespace Flexy.Core.Editor
 	        
 	        var ac = (Action)OnInspectorGUI;
 	        
-	        if( ac.Method.DeclaringType != typeof(RuntimeUIEditor) )
+	        if( ac.Method.DeclaringType != typeof(Editor_WithRuntimeGui) )
 		        _root.hierarchy.Add( new IMGUIContainer( DrawInspectorGUI ){ name = "FlexyContainer:On Inspector GUI" } ); 
         }
         
@@ -60,7 +60,7 @@ namespace Flexy.Core.Editor
 	 
 				foreach ( var methodInfo in methodInfos )
 				{
-					var attribute = methodInfo.GetCustomAttribute<RuntimeInspectorUIAttribute>( );
+					var attribute = methodInfo.GetCustomAttribute<RuntimeInspectorGuiAttribute>( );
 					if ( attribute != null )
 					{
 						methodInfo.Invoke( obj, Array.Empty<System.Object>() );

@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Flexy.AssetRefs;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -52,7 +53,7 @@ namespace Flexy.Core
 		public static	GameContext		Global					=> _global is not null ? _global : _global = CreateGlobalContext();
 		public			GameContext		ParentContext			=> _parent;
 
-		public			EInitState		InitState				{ get; protected set; }
+		public			EInitializing	Initializing			{ get; protected set; }
 
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
 		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene ); // go.transform.root.TryGetComponent<GameContext>( out var rootCtx ) ? rootCtx : GetCtx( go.scene );
@@ -234,6 +235,13 @@ namespace Flexy.Core
 			#endif
 		}
 
+		public async	UniTask<EInitializing> WaitInitializing	( )	
+		{
+			while (Initializing == EInitializing.InProgress)
+				await UniTask.Yield();
+			
+			return Initializing;
+		}
 		protected virtual 		void	InitializeServices		( IService[] services )
 		{
 			foreach ( var service in services )
@@ -247,7 +255,7 @@ namespace Flexy.Core
 					Debug.LogException( ex );
 					if( !_ignoreServiceInitFailures )
 					{
-						InitState = EInitState.InitFail;
+						Initializing = EInitializing.InitFail;
 						break;
 					}
 				}
@@ -255,13 +263,13 @@ namespace Flexy.Core
 		}
 		private async			UniTask	DoInitializeAsyncServices( IServiceAsync[] asyncServices )
 		{
-			if( InitState == EInitState.InitFail ) 
+			if( Initializing == EInitializing.InitFail ) 
 				return;
 			
 			await InitializeAsyncServices( asyncServices );
 			
-			if( InitState != EInitState.InitFail ) 
-				InitState = EInitState.Done;
+			if( Initializing != EInitializing.InitFail ) 
+				Initializing = EInitializing.Done;
 		}
 		protected virtual async	UniTask	InitializeAsyncServices	( IServiceAsync[] asyncServices )
 		{
@@ -276,7 +284,7 @@ namespace Flexy.Core
 					Debug.LogException( ex );
 					if( !_ignoreServiceInitFailures )
 					{
-						InitState = EInitState.InitFail;
+						Initializing = EInitializing.InitFail;
 						break;
 					}
 				}
@@ -350,7 +358,7 @@ namespace Flexy.Core
 		}
 
 		#if UNITY_EDITOR
-		[RuntimeInspectorUI( Repaint = true )]
+		[RuntimeInspectorGui( Repaint = true )]
 		public void RuntimeGUI	( )
 		{
 			if( !Application.isPlaying || !gameObject.scene.IsValid( ) )
@@ -454,7 +462,7 @@ namespace Flexy.Core
 		public static T GetService<T>( this Scene src )			where T:class => GameContext.GetCtx( src ).GetService<T>();
 	}
 	
-	public enum EInitState
+	public enum EInitializing
 	{
 		InProgress = 0,
 		InitFail = 1,

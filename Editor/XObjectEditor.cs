@@ -12,7 +12,7 @@ using Object = System.Object;
 namespace Flexy.Core.Editor
 {
     [CustomEditor( typeof(XObject), true), CanEditMultipleObjects]
-    public class XObjectEditor : RuntimeUIEditor
+    public class XObjectEditor : Editor_WithRuntimeGui
     {
 		protected   		XObject			_target => (XObject)target;
 		private				Int32			_dirtyCount;
