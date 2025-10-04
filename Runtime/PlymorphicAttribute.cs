@@ -1,9 +1,9 @@
 ﻿namespace Flexy.Core;
 
-public class PlymorphAttribute : PropertyAttribute 
+public class PlymorphicAttribute : PropertyAttribute 
 {
-	public PlymorphAttribute( ){}
-	public PlymorphAttribute( Type baseType ) { BaseType = baseType; }
+	public PlymorphicAttribute( ){}
+	public PlymorphicAttribute( Type baseType ) { BaseType = baseType; }
 
 	public Type		BaseType		{ get; set; }
 }

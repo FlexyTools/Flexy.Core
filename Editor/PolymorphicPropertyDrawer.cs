@@ -7,12 +7,11 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Object = System.Object;
 
 namespace Flexy.Core.Editor
 {
-	[CustomPropertyDrawer(typeof(PlymorphAttribute))]
-    public class PolymorphPropertyDrawer : PropertyDrawer
+	[CustomPropertyDrawer(typeof(PlymorphicAttribute))]
+    public class PolymorphicPropertyDrawer : PropertyDrawer
     {
 		public override Boolean CanCacheInspectorGUI(SerializedProperty property)
 		{
@@ -35,7 +34,7 @@ namespace Flexy.Core.Editor
 			if ( property.propertyType != SerializedPropertyType.ManagedReference )
 				return new PropertyField( property );
 			
-			var attr		= (PlymorphAttribute)attribute;
+			var attr		= (PlymorphicAttribute)attribute;
 			var root		= new VisualElement( );
 			var baseType	= attr?.BaseType ?? GetType( property.managedReferenceFieldTypename );
 			

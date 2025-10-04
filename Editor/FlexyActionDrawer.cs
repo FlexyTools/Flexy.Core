@@ -5,12 +5,12 @@ using UnityEngine.UIElements;
 namespace Flexy.Core.Editor
 {
 	[CustomPropertyDrawer(typeof(FlexyAction))]
-	public class FlexyActionDrawer : PolymorphPropertyDrawer
+	public class FlexyActionDrawer : PolymorphicPropertyDrawer
 	{
 	}
 
 	[CustomPropertyDrawer(typeof(FlexyEvent))]
-	public class FlexyEventDrawer : PolymorphPropertyDrawer
+	public class FlexyEventDrawer : PolymorphicPropertyDrawer
 	{
 		public override VisualElement CreatePropertyGUI( SerializedProperty property )
 		{
