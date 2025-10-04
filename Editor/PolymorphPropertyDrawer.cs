@@ -35,8 +35,21 @@ namespace Flexy.Core.Editor
 			if ( property.propertyType != SerializedPropertyType.ManagedReference )
 				return new PropertyField( property );
 			
-			var attr		= ((PlymorphAttribute)attribute);
-            var root		= new VisualElement( );
+			var attr		= (PlymorphAttribute)attribute;
+			var root		= new VisualElement( );
+			var baseType	= attr?.BaseType ?? GetType( property.managedReferenceFieldTypename );
+			
+			BuildUI(root, property, baseType, displayName);
+			
+			root.TrackPropertyValue(property, _ => BuildUI(root, property, baseType, displayName));
+			
+			return root;
+		}
+		
+		public void BuildUI( VisualElement root, SerializedProperty property, Type baseType, String displayName )
+		{
+			Debug.LogError( $"[Build UI] Prop: {property.propertyPath}, BaseType: {property.managedReferenceFullTypename}, DisplayName: {displayName}" );
+			root.Clear();
 			
 			var header		= new VisualElement { name = "Header", style = { flexDirection = FlexDirection.Row }};
 			var foldout		= new Foldout { text = " ", style = { width = 0 }};
@@ -64,9 +77,7 @@ namespace Flexy.Core.Editor
 			
 			foldout.RegisterValueChangedCallback( e => propsBlock.style.display = e.newValue ? DisplayStyle.Flex : DisplayStyle.None );
 			
-			var baseType			= attr?.BaseType ?? GetType( property.managedReferenceFieldTypename );
-			
-			SetupChooseItemButton( _propField, button, baseType, type => WriteNewInstanceByIndexType(type, property) );
+			SetupChooseItemButton( _propField, button, baseType, type => SetNewInstance(type, property) );
 			
 			PopulateInnerProps( property );
 			
@@ -75,8 +86,6 @@ namespace Flexy.Core.Editor
 			
 			root.Add( header );
 			root.Add( _propsBlock );
-			
-			return root;
 		}
 		
 		private void SetFieldName( ContainerField field )
@@ -139,30 +148,24 @@ namespace Flexy.Core.Editor
 		private static String		NicifyTypeName		( Type type )			=> type == null ? NullName : ObjectNames.NicifyVariableName( type.Name );
         private static List<Type>	GetAssignableTypes	( Type type )			
         {
-            var nonUnityTypes	= TypeCache.GetTypesDerivedFrom(type).Where(IsAssignableNonUnityType).ToList();
-            nonUnityTypes.Sort( (l, r) => String.Compare( l.FullName, r.FullName, StringComparison.Ordinal) );
-            nonUnityTypes.Insert(0, null);
-            return nonUnityTypes;
+			var nonUnityTypes	= TypeCache.GetTypesDerivedFrom(type).Where(IsAssignableNonUnityType).ToList();
+			nonUnityTypes.Sort( (l, r) => String.Compare( l.FullName, r.FullName, StringComparison.Ordinal) );
+			nonUnityTypes.Insert(0, null);
+			return nonUnityTypes;
 
-            Boolean IsAssignableNonUnityType(Type type)
-            {
-                return ( type.IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface ) && !type.IsSubclassOf(typeof(UnityEngine.Object)) && type.GetCustomAttributes().All( a => !a.GetType().Name.Contains( "BakingType" )  );
-            }
+			Boolean IsAssignableNonUnityType(Type type)
+			{
+				return ( type.IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface ) && !type.IsSubclassOf(typeof(UnityEngine.Object)) && type.GetCustomAttributes().All( a => !a.GetType().Name.Contains( "BakingType" )  );
+			}
         }
 
-        private void	WriteNewInstanceByIndexType		( Type newType, SerializedProperty property )		
+        private void	SetNewInstance		( Type newType, SerializedProperty property )		
         {
-            var newObject = newType != null ? FormatterServices.GetUninitializedObject(newType) : null;
-            ApplyValueToProperty(newObject, property);
-			
-			PopulateInnerProps( (SerializedProperty)_propField.userData );
+			var newObject = newType != null ? FormatterServices.GetUninitializedObject(newType) : null;
+			property.managedReferenceValue = newObject;
+			property.serializedObject.ApplyModifiedProperties();
         }
-        private void	ApplyValueToProperty			( Object value, SerializedProperty property )		
-        {
-            property.managedReferenceValue = value;
-            property.serializedObject.ApplyModifiedProperties();
-            property.serializedObject.Update();
-        }
+        
 		private void	PopulateInnerProps				( SerializedProperty property )						
 		{
 			_propsBlock.hierarchy.Clear( );
