@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Flexy.Core.Editor;
+namespace Flexy.Core.Editor.ToolbarControls;
 
 [InitializeOnLoad]
 public static class OpenInExplorerButton
@@ -16,7 +16,7 @@ public static class OpenInExplorerButton
 		var text = "Explorer";
 		#endif
 		
-		if( GUILayout.Button( text, EditorStyles.toolbarButton, GUILayout.Height(14) ) )
+		if (GUILayout.Button( text, EditorStyles.toolbarButton, GUILayout.Height(14) ))
 		{
 			Application.OpenURL( Application.dataPath.Replace( "/Assets", "" ) );
 		}

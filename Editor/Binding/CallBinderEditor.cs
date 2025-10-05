@@ -20,7 +20,7 @@ namespace Flexy.Core.Editor.Binding
 		private				List<String>		_methodNames;
 		private				String[]			_methodNamesNice;
 
-		public override VisualElement CreateInspectorGUI()
+		public override		VisualElement		CreateInspectorGUI	( )		
 		{
 			var root = new VisualElement();
 			var iterator = serializedObject.GetIterator();
@@ -30,13 +30,8 @@ namespace Flexy.Core.Editor.Binding
 			{
 				enterChildren = false;
 
-				if (iterator.propertyPath == "m_Script" || 
-				    iterator.propertyPath == "_target" || 
-				    iterator.propertyPath == "_methodName" || 
-				    iterator.propertyPath == "_context")
-				{
+				if (iterator.propertyPath is "m_Script" or "_target" or "_methodName" or "_context")
 					continue;
-				}
 
 				var propertyField = new PropertyField(iterator);
 				propertyField.BindProperty(iterator);
@@ -48,11 +43,9 @@ namespace Flexy.Core.Editor.Binding
 			return root;
 		}
 
-		public override		void				OnInspectorGUI		( )				
+		public override		void				OnInspectorGUI		( )		
 		{
 			serializedObject.Update			( );
-
-			//DrawPropertiesExcluding			( serializedObject, "m_Script", "_target", "_methodName", "_context" );
 
 			var componentProp				= serializedObject.FindProperty( "_target" );
 			var methodProp					= serializedObject.FindProperty( "_methodName" );
@@ -148,7 +141,7 @@ namespace Flexy.Core.Editor.Binding
 
 			serializedObject.ApplyModifiedProperties( );
 		}
-		private				void				OnEnable			( )				
+		private				void				OnEnable			( )		
 		{
 			if( target == null )
 			{
@@ -158,7 +151,7 @@ namespace Flexy.Core.Editor.Binding
 			UpdateMethods	( );
 		}
 
-		private				void				UpdateMethods		( )				
+		private				void				UpdateMethods		( )		
 		{
 			var componentProp	= serializedObject.FindProperty( "_target" );
 

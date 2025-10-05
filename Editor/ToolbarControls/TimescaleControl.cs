@@ -2,12 +2,12 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Flexy.Core.Editor;
+namespace Flexy.Core.Editor.ToolbarControls;
 
 [InitializeOnLoad]
-public static class ToolbarTimescale
+public static class TimescaleControl
 {
-	static ToolbarTimescale( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( "Timescale", OnTestRunGUI, UnityEditorTopToolbar.EPlace.Center ); }
+	static TimescaleControl( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( "Timescale", OnTestRunGUI, UnityEditorTopToolbar.EPlace.Center ); }
 	
 	private static void		OnTestRunGUI			( )	
 	{

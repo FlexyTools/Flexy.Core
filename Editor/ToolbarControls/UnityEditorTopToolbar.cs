@@ -4,10 +4,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 
-namespace Flexy.Core.Editor
+namespace Flexy.Core.Editor.ToolbarControls
 {
 	[InitializeOnLoad]
 	public static class UnityEditorTopToolbar
@@ -95,7 +94,6 @@ namespace Flexy.Core.Editor
 			Right
 		}
 		
-				
 		public class Preferences : SettingsProvider
 		{
 			[SettingsProvider]

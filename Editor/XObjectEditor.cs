@@ -312,8 +312,6 @@ namespace Flexy.Core.Editor
 					GUILayout.Label( typeName, _additionalComponentStyle );
 				}
 				
-				
-				
 				// if ( GUILayout.Button( "?", GUILayout.Width( 20 ) ) )                                           
 				// {
 				// 	var scriptId = AssetDatabase.FindAssets( typeName ).FirstOrDefault();
@@ -328,8 +326,9 @@ namespace Flexy.Core.Editor
 				{
 					GUILayout.FlexibleSpace();
 					GUI.color = new Color32(255, 200, 200, 255);
-					if ( GUILayout.Button( "X", GUILayout.Width( 20 ), GUILayout.Height(20) ) )					
+					if ( GUILayout.Button( "X", GUILayout.Width(20), GUILayout.Height(20) ) )					
 						componentToRemove = i;
+						
 					GUI.color = Color.white;
 				}
 				
@@ -339,38 +338,38 @@ namespace Flexy.Core.Editor
 		private				void			AddComponentButtonIMGUI	( )
 		{
 			GUILayout.Space( 10 );
-			GUILayout.BeginHorizontal(  );
-			GUILayout.FlexibleSpace( );
+			GUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
 					
-			if( GUILayout.Button( " Add Component " , GUILayout.Width( 300 ), GUILayout.Height(35)) )
+			if (GUILayout.Button( " Add Component " , GUILayout.Width(300), GUILayout.Height(35)))
 			{
 				var componentsTypesList	= GetComponentTypes( _target );
-				var menu				= new GenericMenu(  );
+				var menu				= new GenericMenu();
 						
-				if( componentsTypesList.Count == 0 )
+				if (componentsTypesList.Count == 0)
 				{
 					menu.AddItem( new GUIContent("Empty"), false, null );
 				}
 				else
 				{
-					foreach ( var componentType in componentsTypesList )
+					foreach (var componentType in componentsTypesList)
 					{
 						menu.AddItem( new GUIContent(componentType.Name), false, OnClickAddComponentMenu, componentType );	
 					}
 				}
 						
-				menu.ShowAsContext(  );
+				menu.ShowAsContext( );
 			}
-			GUILayout.FlexibleSpace( );
-			GUILayout.EndHorizontal(  );
+			GUILayout.FlexibleSpace();
+			GUILayout.EndHorizontal();
 		}
 		
 		protected virtual IReadOnlyCollection<Type> GetComponentTypes( XObject gdiObject )
 		{
-			var result	= new List<Type>( );
-			var list	= gdiObject.GetType(  ).GetCustomAttributes<XComponentAllowAttribute>( );
+			var result	= new List<Type>();
+			var list	= gdiObject.GetType().GetCustomAttributes<XComponentAllowAttribute>();
 			
-			foreach ( var componentRequiredAttribute in list )
+			foreach (var componentRequiredAttribute in list)
 			{
 				result.AddRange( TypeCache.GetTypesDerivedFrom( componentRequiredAttribute.BaseXComponentType )
 										  .Append( componentRequiredAttribute.BaseXComponentType)
@@ -387,17 +386,17 @@ namespace Flexy.Core.Editor
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
 			var copy	= property.Copy();
-			var propsVE	= new VisualElement(  ){ name = "PropsContainer" };
+			var propsVe	= new VisualElement{ name = "PropsContainer" };
 	
-			if( !String.IsNullOrWhiteSpace( preferredLabel ) )
-				propsVE.Add( new Label(preferredLabel) );
+			if (!String.IsNullOrWhiteSpace( preferredLabel ))
+				propsVe.Add( new Label(preferredLabel) );
 		
 			var depth = copy.depth + 1;
 			
-			for ( var enterChildren = true; copy.NextVisible( enterChildren ) && copy.depth >= depth; enterChildren = false )
-				propsVE.Add( new PropertyField(copy) );
+			for (var enterChildren = true; copy.NextVisible( enterChildren ) && copy.depth >= depth; enterChildren = false)
+				propsVe.Add( new PropertyField(copy) );
 		
-			return propsVE;
+			return propsVe;
 		}
 	}
 }
