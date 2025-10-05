@@ -6,7 +6,7 @@ namespace Flexy.Core.Editor;
 [InitializeOnLoad]
 public static class OpenInExplorerButton
 {
-	static OpenInExplorerButton( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( OnGUI, UnityEditorTopToolbar.EPlace.Right ); }
+	static OpenInExplorerButton( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( "Open In Explorer", OnGUI, UnityEditorTopToolbar.EPlace.Right ); }
 	
 	private static void		OnGUI			( )	
 	{

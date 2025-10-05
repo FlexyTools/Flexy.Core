@@ -8,7 +8,7 @@ namespace Flexy.Core.Editor
 	{
 		static ProjectNameOnToolbar()
 		{
-			UnityEditorTopToolbar.AddIMGUIContainerToLeftPocket( OnToolbarGUI, UnityEditorTopToolbar.EPlace.Center );
+			UnityEditorTopToolbar.AddIMGUIContainerToLeftPocket( "ProjectName", OnToolbarGUI, UnityEditorTopToolbar.EPlace.Center );
 		}
 
 		static void OnToolbarGUI()

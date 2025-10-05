@@ -7,7 +7,7 @@ namespace Flexy.Core.Editor;
 [InitializeOnLoad]
 public static class ToolbarTimescale
 {
-	static ToolbarTimescale( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( OnTestRunGUI, UnityEditorTopToolbar.EPlace.Center ); }
+	static ToolbarTimescale( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( "Timescale", OnTestRunGUI, UnityEditorTopToolbar.EPlace.Center ); }
 	
 	private static void		OnTestRunGUI			( )	
 	{
