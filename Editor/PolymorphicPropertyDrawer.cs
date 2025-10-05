@@ -13,18 +13,8 @@ namespace Flexy.Core.Editor
 	[CustomPropertyDrawer(typeof(PlymorphicAttribute))]
     public class PolymorphicPropertyDrawer : PropertyDrawer
     {
-		public override Boolean CanCacheInspectorGUI(SerializedProperty property)
-		{
-			return false;
-		}
-		
 		private const	String			NullName = "None";
 		
-		private			ContainerField	_propField;
-		private			String			_displayName;
-		private			VisualElement	_propsInline;
-		private			VisualElement	_propsBlock;
-
         public override	VisualElement	CreatePropertyGUI	( SerializedProperty property )						
 		{
 			return CreatePropertyGUI( property, property.displayName );
@@ -44,8 +34,8 @@ namespace Flexy.Core.Editor
 			
 			return root;
 		}
-		
-		public void BuildUI( VisualElement root, SerializedProperty property, Type baseType, String displayName )
+
+		private			void			BuildUI				( VisualElement root, SerializedProperty property, Type baseType, String displayName )
 		{
 			Debug.LogError( $"[Build UI] Prop: {property.propertyPath}, BaseType: {property.managedReferenceFullTypename}, DisplayName: {displayName}" );
 			root.Clear();
@@ -66,31 +56,26 @@ namespace Flexy.Core.Editor
 			propField.Add( new(){ style = { flexGrow = 0.01f } } );
 			propField.Add( button );
 			
-			_propsInline			= propsInline; 
-			_displayName			= displayName;
-			_propField				= propField;
-			_propField.userData		= property;
-			_propsBlock				= propsBlock;
-	
-			SetFieldName( _propField );
+			propField.userData		= property;
+			
+			SetFieldName( displayName, propField );
 			
 			foldout.RegisterValueChangedCallback( e => propsBlock.style.display = e.newValue ? DisplayStyle.Flex : DisplayStyle.None );
 			
-			SetupChooseItemButton( _propField, button, baseType, type => SetNewInstance(type, property) );
+			SetupChooseItemButton( propField, button, baseType, type => SetNewInstance(type, property) );
 			
-			PopulateInnerProps( property );
+			PopulateInnerProps( propsInline, propsBlock, property );
 			
 			if( propsBlock.hierarchy.childCount == 0 )
 				foldout.style.display = DisplayStyle.None;
 			
 			root.Add( header );
-			root.Add( _propsBlock );
+			root.Add( propsBlock );
 		}
-		
-		private void SetFieldName( ContainerField field )
+		private			void			SetFieldName		( String displayName, ContainerField field )
 		{
-			var property = (SerializedProperty)field.userData;
-			var path = property.propertyPath;
+			var property	= (SerializedProperty)field.userData;
+			var path		= property.propertyPath;
 			
 			var selectedType		= GetType( property.managedReferenceFullTypename );
 			var selectedTypeName	= NicifyTypeName(selectedType);
@@ -104,11 +89,11 @@ namespace Flexy.Core.Editor
 			}
 			else
 			{
-				field.label = _displayName + " => " + selectedTypeName;
+				field.label = displayName + ": " + selectedTypeName;
 			}
 		}
-		
-        public static	void		SetupChooseItemButton( VisualElement root, Button btn, Type propertyType, Action<Type> onSelectedNewType )
+
+		private static	void			SetupChooseItemButton( VisualElement root, Button btn, Type propertyType, Action<Type> onSelectedNewType )
         {
 	        var assignableTypes = (List<Type>)btn.userData;
 	        
@@ -131,21 +116,19 @@ namespace Flexy.Core.Editor
 		        
 		        dropdown.Show(buttonRect);
 	        }
-			
-			
         }
 		
-		private static Type			GetType				( String typename )		
+		private static	Type			GetType				( String typename )		
 		{
-			if( String.IsNullOrWhiteSpace( typename ) )
+			if (String.IsNullOrWhiteSpace( typename ))
 				return null;
 			
 			var parts		= typename.Split( ' ' );
 			return Type.GetType( $"{parts[1]}, {parts[0]}", false );
 		}
-		private static String		NicifyTypeFullName	( Type type )			=> type == null ? NullName : ObjectNames.NicifyVariableName( type.FullName );
-		private static String		NicifyTypeName		( Type type )			=> type == null ? NullName : ObjectNames.NicifyVariableName( type.Name );
-        private static List<Type>	GetAssignableTypes	( Type type )			
+		private static	String			NicifyTypeFullName	( Type type )			=> type == null ? NullName : ObjectNames.NicifyVariableName( type.FullName );
+		private static	String			NicifyTypeName		( Type type )			=> type == null ? NullName : ObjectNames.NicifyVariableName( type.Name );
+        private static	List<Type>		GetAssignableTypes	( Type type )			
         {
 			var nonUnityTypes	= TypeCache.GetTypesDerivedFrom(type).Where(IsAssignableNonUnityType).ToList();
 			nonUnityTypes.Sort( (l, r) => String.Compare( l.FullName, r.FullName, StringComparison.Ordinal) );
@@ -154,47 +137,41 @@ namespace Flexy.Core.Editor
 
 			Boolean IsAssignableNonUnityType(Type type)
 			{
-				return ( type.IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface ) && !type.IsSubclassOf(typeof(UnityEngine.Object)) && type.GetCustomAttributes().All( a => !a.GetType().Name.Contains( "BakingType" )  );
+				return type.IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface && !type.IsSubclassOf(typeof(UnityEngine.Object)) && type.GetCustomAttributes().All( a => !a.GetType().Name.Contains( "BakingType" )  );
 			}
         }
 
         private void	SetNewInstance		( Type newType, SerializedProperty property )		
         {
-			var newObject = newType != null ? FormatterServices.GetUninitializedObject(newType) : null;
-			property.managedReferenceValue = newObject;
+			var newValue = newType != null ? FormatterServices.GetUninitializedObject(newType) : null;
+			property.managedReferenceValue = newValue;
 			property.serializedObject.ApplyModifiedProperties();
         }
-        
-		private void	PopulateInnerProps				( SerializedProperty property )						
+		private void	PopulateInnerProps	( VisualElement propsInline, VisualElement propsBlock, SerializedProperty property )						
 		{
-			_propsBlock.hierarchy.Clear( );
+			propsBlock.hierarchy.Clear();
 			
-			if( property.managedReferenceValue == null )
-			{
-				SetFieldName( _propField );
+			if (property.managedReferenceValue == null)
 				return;
-			}
 			
 			var attr			= property.managedReferenceValue.GetType().GetCustomAttribute<InlineFieldsAttribute>();
 			var inlineFields	= attr != null ? attr.FieldNames : Array.Empty<String>( );
 			
-			var copy	= property.Copy( );
+			var copy	= property.Copy();
 			var depth	= copy.depth + 1;
 
-			for ( var i = 0; copy.NextVisible( i==0 ) && copy.depth >= depth; i++ )
+			for (var i = 0; copy.NextVisible( i==0 ) && copy.depth >= depth; i++)
 			{
-				var putInline = (!copy.isArray || copy.propertyType == SerializedPropertyType.String) && ( i < 4 || inlineFields.Contains( copy.name ) );
-				if( putInline )
-					_propsInline.Add( new PropertyField(copy, String.Empty) );//{ style = { flexGrow = 1f} } );
+				var putInline = (!copy.isArray || copy.propertyType == SerializedPropertyType.String) && ( i < 4 || inlineFields.Contains( copy.name ));
+				if (putInline)
+					propsInline.Add( new PropertyField(copy, String.Empty) );//{ style = { flexGrow = 1f} } );
 				
 				else
-					_propsBlock.Add( new PropertyField(copy) );
+					propsBlock.Add( new PropertyField(copy) );
 			}
 			
-			SetFieldName( _propField );
-			
-			_propsBlock.Unbind( );
-			_propsBlock.Bind( property.serializedObject );
+			propsBlock.Unbind();
+			propsBlock.Bind( property.serializedObject );
 		}
     }
 	
