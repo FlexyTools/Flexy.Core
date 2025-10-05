@@ -50,12 +50,12 @@ public static class Noise
 	[MethodImpl(256)] public static		Single	Get1dNoiseZeroToOne		( Int32 index, UInt32 seed ) => (Single)(OneOverMaxUint * SquirrelNoise5( index, seed ));
 	[MethodImpl(256)] public static		Single	Get2dNoiseZeroToOne		( Int32 indexX, Int32 indexY, UInt32 seed ) => (Single)(OneOverMaxUint * Get2dNoiseUint( indexX, indexY, seed ));
 	[MethodImpl(256)] public static		Single	Get3dNoiseZeroToOne		( Int32 indexX, Int32 indexY, Int32 indexZ, UInt32 seed ) => (Single)(OneOverMaxUint * Get3dNoiseUint( indexX, indexY, indexZ, seed ));
-	[MethodImpl(256)] public static		Single	Get4dNoiseZeroToOne		( Int32 indexX, Int32 indexY, Int32 indexZ, Int32 indexT, UInt32 seed ) => (Single)(OneOverMaxUint * Get4dNoiseUint( indexX, indexY, indexZ, indexT, seed ));
+	[MethodImpl(256)] public static		Single	Get4dNoiseZeroToOne		( Int32 indexX, Int32 indexY, Int32 indexZ, Int32 indexW, UInt32 seed ) => (Single)(OneOverMaxUint * Get4dNoiseUint( indexX, indexY, indexZ, indexW, seed ));
 	
 	[MethodImpl(256)] public static		Single	Get1dNoiseNegOneToOne	( Int32 index, UInt32 seed ) => (Single)(OneOverMaxInt * (Int32) SquirrelNoise5( index, seed ));
 	[MethodImpl(256)] public static		Single	Get2dNoiseNegOneToOne	( Int32 indexX, Int32 indexY, UInt32 seed ) => (Single)(OneOverMaxInt * (Int32) Get2dNoiseUint( indexX, indexY, seed ));
 	[MethodImpl(256)] public static		Single	Get3dNoiseNegOneToOne	( Int32 indexX, Int32 indexY, Int32 indexZ, UInt32 seed ) => (Single)(OneOverMaxInt * (Int32) Get3dNoiseUint( indexX, indexY, indexZ, seed ));
-	[MethodImpl(256)] public static		Single	Get4dNoiseNegOneToOne	( Int32 indexX, Int32 indexY, Int32 indexZ, Int32 indexT, UInt32 seed ) => (Single)(OneOverMaxInt * (Int32) Get4dNoiseUint( indexX, indexY, indexZ, indexT, seed ));
+	[MethodImpl(256)] public static		Single	Get4dNoiseNegOneToOne	( Int32 indexX, Int32 indexY, Int32 indexZ, Int32 indexW, UInt32 seed ) => (Single)(OneOverMaxInt * (Int32) Get4dNoiseUint( indexX, indexY, indexZ, indexW, seed ));
 }
 
 /// <summary>

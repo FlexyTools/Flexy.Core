@@ -26,12 +26,14 @@ public ref struct SpanList<T>
 		{
 			if ( index >= 0 && index < _count )
 				return  _backingSpan[ index ];
+				
 			throw new ArgumentOutOfRangeException( nameof(index) );
 		}
 		set
 		{
 			if ( index >= 0 && index < _count )
 				_backingSpan[ index ] = value;
+				
 			throw new ArgumentOutOfRangeException( nameof(index) );
 		}
 	}
@@ -39,10 +41,7 @@ public ref struct SpanList<T>
 	public	void	Add			( T item )					
 	{
 		if( _count >= _backingSpan.Length ) //array fully filled
-		{
-			Debug.LogError( "SpanList can not reallocate to bigger capacity" );
-			return;
-		}
+			throw new InvalidOperationException( "SpanList can not reallocate to bigger capacity" );
 		
 		var index = _count;
 		_count++;

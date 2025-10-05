@@ -1,6 +1,6 @@
 namespace Flexy.Core;
 
-public static class GoExtensions
+public static class GameObjectExtensions
 {
 	public static	void	ClearEditorDirty	( this GameObject go )
 	{

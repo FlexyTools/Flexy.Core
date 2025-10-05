@@ -1,12 +1,10 @@
 ﻿#if UNITY_EDITOR
-using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Flexy.Core.Editor
+namespace Flexy.Core
 {
     [CustomEditor( typeof(MonoBehaviour), true), CanEditMultipleObjects]
     public class Editor_WithRuntimeGui : UnityEditor.Editor 
@@ -47,7 +45,7 @@ namespace Flexy.Core.Editor
         
         public				void	ExposedPropsAndMethodsGUI	( )				
         {
-			if( targets.Length == 1 && EditorApplication.isPlaying )
+			if (targets.Length == 1 && EditorApplication.isPlaying)
 				DrawRuntimeGUI(target);
         }
         public				void	DrawRuntimeGUI			( Object obj )	
@@ -63,7 +61,7 @@ namespace Flexy.Core.Editor
 					var attribute = methodInfo.GetCustomAttribute<RuntimeInspectorGuiAttribute>( );
 					if ( attribute != null )
 					{
-						methodInfo.Invoke( obj, Array.Empty<System.Object>() );
+						methodInfo.Invoke( obj, Array.Empty<Object>() );
 						
 						if( attribute.Repaint )
 							Repaint( );

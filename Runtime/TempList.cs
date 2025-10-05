@@ -67,9 +67,7 @@ namespace Flexy.Core
 				Add( item );
 		}
 		
-		[MethodImpl(256)]
-		public Span<T>AsSpan( ) => _array.AsSpan( .._count );
-		[MethodImpl(256)]
-		public Span<T>.Enumerator GetEnumerator() => AsSpan().GetEnumerator();
+		[MethodImpl(256)] public Span<T>AsSpan( ) => _array.AsSpan( .._count );
+		[MethodImpl(256)] public Span<T>.Enumerator GetEnumerator() => AsSpan().GetEnumerator();
 	}
 }
