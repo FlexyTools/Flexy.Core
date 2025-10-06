@@ -1,17 +1,19 @@
 Flexy.Bricks
 
 Bricks Building Principles
-    SPOT
-    KISS - write simple predictable code
-    Pure & self-sufficient
-    Plug & Play
-    Data Driven
-    Nature Oriented (Domain Based)
-    Testable
-    Fault Tolerance
-    Composition vs Inheritance
-    Concrete vs Abstract
-    SA-VmV
+    SPOT - every system has a single responsible source of truth
+    KISS - write simple predictable and understandable code
+    Pure & self-sufficient -  independent, modular systems
+    Plug & Play - context-based dependency resolution instead of specific initialization logic
+    State Driven - the game is controlled entirely via States, which encapsulate GameContexts
+    Data Driven - game systems work as IO systems through data stream and async message bus
+    Nature Oriented (Domain Based) - game systems align closely with natural game design domains
+    Testable - Input-Output-driven system design enables robust testing
+    Fault Tolerance - decoupled dependencies prevent cascading failures
+    Composition vs Inheritance - flexible system design for extending functionality
+    Concrete vs Abstract - premature abstraction is discouraged
+    MC-VmV - Clear separation between game logic and presentation (Clear architecture)
+    
     
 Write simple code
     Using heuristic that it “Fits In My Head”
@@ -23,6 +25,7 @@ Write simple code
 Testing
     Characterisation tests
     Test use cases    
+    Tests is usage samples
     Test integration - play
 
 
@@ -37,10 +40,10 @@ Create with Patterns
     EventAction
 
 
-SA-VmV
-State & BusinessLogic (host):
-   [S]   State         (Entities | Data Struct / Class)     - pure data with methods for changing it and serialisation  
-   [A]   Aspect        (Use Cases | Tick Job)               - business logic that act on many models (composition) to provide service  
+MC-VmV
+Model & Command (host):
+   [M]   Model         (Entities | Data Struct / Class)     - pure data with methods for changing it and serialisation  
+   [C]   Command       (Use Cases | System Tick Job)        - business logic that act on many models (composition) to provide service  
   
 Presentation (client)
    [Vm] ViewModel      (Presenters | Update View Monobeh)   - logic coupled to view that prepare data for view interpolate it, update view, get input from view 
