@@ -1,10 +1,10 @@
-namespace Flexy.Core.GameContexts
+namespace Flexy.Core.Services
 {
 	public class Setup_TaskExceptionsLogger: MonoBehaviour, IService
 	{
 		public void OrderedInit(GameContext ctx)
 		{
-			UniTaskScheduler.UnobservedTaskException += ex => Debug.LogException(ex);		
+			UniTaskScheduler.UnobservedTaskException += Debug.LogException;		
 		}
 	}
 }

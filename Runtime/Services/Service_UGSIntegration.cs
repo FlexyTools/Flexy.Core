@@ -2,7 +2,7 @@
 
 using Unity.Services.Core;
 
-namespace Flexy.Core
+namespace Flexy.Core.Services
 {
     public class Service_UGSIntegration : MonoBehaviour, IServiceAsync
     {

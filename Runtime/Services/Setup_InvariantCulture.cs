@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Threading;
 
-namespace Flexy.Core
+namespace Flexy.Core.Services
 {
 	public class Setup_InvariantCulture : MonoBehaviour, IService
 	{

@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace Flexy.Core
 {
     [CustomEditor( typeof(MonoBehaviour), true), CanEditMultipleObjects]
-    public class Editor_WithRuntimeGui : UnityEditor.Editor 
+    public class Editor_WithRuntimeGui : Editor 
     {
 	    protected	VisualElement	_root;
 	    
@@ -25,14 +25,14 @@ namespace Flexy.Core
         protected			void	FillRoot			( )		
         {
 	        if( DrawDefaultInspector )
-		        InspectorElement.FillDefaultInspector( _root, this.serializedObject , this );
+		        InspectorElement.FillDefaultInspector( _root, serializedObject , this );
 		
-	        _root.hierarchy.Add( new IMGUIContainer( ExposedPropsAndMethodsGUI ){ name = "FlexyContainer:Exposed Properties And Methods" } );
-	        
 	        var ac = (Action)OnInspectorGUI;
 	        
 	        if( ac.Method.DeclaringType != typeof(Editor_WithRuntimeGui) )
-		        _root.hierarchy.Add( new IMGUIContainer( DrawInspectorGUI ){ name = "FlexyContainer:On Inspector GUI" } ); 
+		        _root.hierarchy.Add( new IMGUIContainer( DrawInspectorGUI ){ name = "FlexyContainer:On Inspector GUI" } );
+		        
+	        _root.hierarchy.Add( new IMGUIContainer( DrawRuntimeGui ){ name = "Flexy Runtime On Gui" } ); 
         }
         
         private  			void	DrawInspectorGUI	( )		
@@ -42,14 +42,12 @@ namespace Flexy.Core
 	        serializedObject.ApplyModifiedProperties( );
         }
         public  override	void	OnInspectorGUI		( )		{ }
-        
-        public				void	ExposedPropsAndMethodsGUI	( )				
+        private				void	DrawRuntimeGui		( )		
         {
-			if (targets.Length == 1 && EditorApplication.isPlaying)
-				DrawRuntimeGUI(target);
-        }
-        public				void	DrawRuntimeGUI			( Object obj )	
-        { 
+	        if (targets.Length != 1 || !EditorApplication.isPlaying)
+				return;	
+         
+			var obj = target;
 			var type = obj.GetType( );
         
 			while ( type != null && type != typeof(Object) )
@@ -59,13 +57,14 @@ namespace Flexy.Core
 				foreach ( var methodInfo in methodInfos )
 				{
 					var attribute = methodInfo.GetCustomAttribute<RuntimeInspectorGuiAttribute>( );
-					if ( attribute != null )
-					{
-						methodInfo.Invoke( obj, Array.Empty<Object>() );
+					if (attribute == null) 
+						continue;
+					
+					try{ methodInfo.Invoke( obj, Array.Empty<Object>() ); }
+					catch(Exception ex){ Debug.LogException(ex); }
 						
-						if( attribute.Repaint )
-							Repaint( );
-					}
+					if( attribute.Repaint )
+						Repaint( );
 				}
 				
 				type = type.BaseType;

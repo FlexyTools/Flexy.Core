@@ -4,8 +4,8 @@ public ref struct SpanList<T>
 {
 	public	SpanList( Span<T> backingSpan )						
 	{
-		_backingSpan = backingSpan;
-		_count = 0;
+		_backingSpan	= backingSpan;
+		_count			= 0;
 	}
 	public	SpanList( Span<T> backingSpan, IList<T> initial )	
 	{
@@ -24,17 +24,18 @@ public ref struct SpanList<T>
 	{
 		get
 		{
-			if ( index >= 0 && index < _count )
-				return  _backingSpan[ index ];
-				
-			throw new ArgumentOutOfRangeException( nameof(index) );
+			if (index>= _count)
+				throw new ArgumentOutOfRangeException( nameof(index) );
+		
+			
+			return  _backingSpan[index];
 		}
 		set
 		{
-			if ( index >= 0 && index < _count )
-				_backingSpan[ index ] = value;
+			if (index>= _count)
+				throw new ArgumentOutOfRangeException( nameof(index) );
 				
-			throw new ArgumentOutOfRangeException( nameof(index) );
+			_backingSpan[index] = value;
 		}
 	}
 			
@@ -49,8 +50,8 @@ public ref struct SpanList<T>
 	}
 	public	void	AddRange	( IEnumerable<T> items )	
 	{
-		foreach ( var item in items )
-			Add( item );
+		foreach (var item in items)
+			Add(item);
 	}
 		
 	public Span<T>.Enumerator GetEnumerator	( )				

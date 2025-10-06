@@ -162,7 +162,7 @@ namespace Flexy.Core.Editor
 
 			for (var i = 0; copy.NextVisible( i==0 ) && copy.depth >= depth; i++)
 			{
-				var putInline = (!copy.isArray || copy.propertyType == SerializedPropertyType.String) && ( i < 4 || inlineFields.Contains( copy.name ));
+				var putInline = (!copy.isArray || copy.propertyType == SerializedPropertyType.String) && ( i < 2 || inlineFields.Contains( copy.name ));
 				if (putInline)
 					propsInline.Add( new PropertyField(copy, String.Empty) );//{ style = { flexGrow = 1f} } );
 				

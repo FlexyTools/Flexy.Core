@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Reflection;
 using Flexy.AssetRefs;
+using Flexy.Core.Extensions;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
@@ -49,7 +50,7 @@ namespace Flexy.Core
 		private readonly			Dictionary<Type, Object>		_registeredServicesDict	= new ( );
 		
 
-		public static	GameContext		Global					=> _global is not null ? _global : _global = CreateGlobalContext();
+		public static	GameContext		Global					=> _global.OrNull() is not null ? _global : _global = CreateGlobalContext();
 		public			GameContext		ParentContext			=> _parent;
 
 		public			EInitializing	Initializing			{ get; protected set; }
@@ -234,7 +235,7 @@ namespace Flexy.Core
 			#endif
 		}
 
-		public async	UniTask<EInitializing> WaitInitializing	( )	
+		public async		UniTask<EInitializing> WaitInitializing	( )	
 		{
 			while (Initializing == EInitializing.InProgress)
 				await UniTask.Yield();
@@ -260,16 +261,6 @@ namespace Flexy.Core
 				}
 			}
 		}
-		private async			UniTask	DoInitializeAsyncServices( IServiceAsync[] asyncServices )
-		{
-			if( Initializing == EInitializing.InitFail ) 
-				return;
-			
-			await InitializeAsyncServices( asyncServices );
-			
-			if( Initializing != EInitializing.InitFail ) 
-				Initializing = EInitializing.Done;
-		}
 		protected virtual async	UniTask	InitializeAsyncServices	( IServiceAsync[] asyncServices )
 		{
 			foreach ( var service in asyncServices )
@@ -288,6 +279,16 @@ namespace Flexy.Core
 					}
 				}
 			}
+		}
+		private async			UniTask	DoInitializeAsyncServices( IServiceAsync[] asyncServices )
+		{
+			if( Initializing == EInitializing.InitFail ) 
+				return;
+			
+			await InitializeAsyncServices( asyncServices );
+			
+			if( Initializing != EInitializing.InitFail ) 
+				Initializing = EInitializing.Done;
 		}
 		
 		public static	String			GetDisplayServiceName	( Type svcType )
