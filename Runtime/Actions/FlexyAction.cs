@@ -26,7 +26,7 @@
 	{
 		[SerializeReference] FlexyAction?	_action;
 		
-		public UniTask Raise( Component ctxObj ) => _action.Raise( ctxObj );
+		public UniTask Raise( Component srcObject ) => _action.Raise( srcObject );
 		
 		public event Action<ActionCtx> Raised	
 		{
@@ -81,78 +81,28 @@
 	
 	public static class FlexyActionExtensions
 	{
-		public static			UniTask	Raise			( this FlexyAction? action, Component ctxObj )	
+		public static			UniTask	Raise			( this FlexyAction? action, Component srcObject )	
 		{
 			if( action == null )
 				return UniTask.CompletedTask;
 			
-			return action.GuardedDoAsync( ActionCtx.Rent( ctxObj ) );
+			return action.GuardedDoAsync( new ActionCtx{ SrcObject = srcObject } );
 		}
-		public static async		UniTask	GuardedDoAsync	( this FlexyAction action, ActionCtx ctx )		
+		public static async		UniTask	GuardedDoAsync	( this FlexyAction action, ActionCtx ctx )			
 		{
 			try
 			{
-				ctx.IncreaseRef();
 				await action.DoAsync( ctx );
 			}
-			finally
+			catch(Exception ex)
 			{
-				ctx.DecreaseRef();
+				Debug.LogException(ex);
 			}
 		}
 	}
 	
-	public class ActionCtx
+	public struct ActionCtx
 	{
-		[RuntimeStaticClear]
-		private void StaticClear() => _ctxPool = new();
-	
-		private static List<ActionCtx> _ctxPool = new();
-		
-		public	Component			CtxObj		= null!;
-		public	Object?				RefValue;
-		public	Int32				IntValue;
-		public	Single				FloatValue;
-
-		private Int32				_refCounter;
-		
-		public	void	IncreaseRef	( )	
-		{
-			_refCounter++;
-		}
-		public	void	DecreaseRef	( )	
-		{
-			_refCounter--;
-			
-			if( _refCounter <= 0 )
-				Release( this );
-		}
-		
-		public static	ActionCtx	Rent	( Component ctxObj )	
-		{
-			ActionCtx ctx;
-			
-			if( _ctxPool.Count == 0 )
-			{
-				ctx = new( );
-			}
-			else
-			{
-				ctx = _ctxPool[^1];
-				_ctxPool.RemoveAt( _ctxPool.Count-1 );
-			}
-			
-			ctx.CtxObj = ctxObj;
-			return ctx;
-		}
-		private static	void		Release	( ActionCtx ctx )		
-		{
-			ctx.CtxObj		= null!;
-			ctx.RefValue	= null;
-			ctx.IntValue	= 0;
-			ctx.FloatValue	= 0;
-			
-			_ctxPool.Add( ctx );
-		}
+		public	Component	SrcObject;
 	}
 }

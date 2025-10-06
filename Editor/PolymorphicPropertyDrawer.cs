@@ -37,7 +37,6 @@ namespace Flexy.Core.Editor
 
 		private			void			BuildUI				( VisualElement root, SerializedProperty property, Type baseType, String displayName )
 		{
-			Debug.LogError( $"[Build UI] Prop: {property.propertyPath}, BaseType: {property.managedReferenceFullTypename}, DisplayName: {displayName}" );
 			root.Clear();
 			
 			var header		= new VisualElement { name = "Header", style = { flexDirection = FlexDirection.Row }};
@@ -162,9 +161,9 @@ namespace Flexy.Core.Editor
 
 			for (var i = 0; copy.NextVisible( i==0 ) && copy.depth >= depth; i++)
 			{
-				var putInline = (!copy.isArray || copy.propertyType == SerializedPropertyType.String) && ( i < 2 || inlineFields.Contains( copy.name ));
+				var putInline = (!copy.isArray || copy.propertyType == SerializedPropertyType.String) && ( i < 1 || inlineFields.Contains( copy.name ));
 				if (putInline)
-					propsInline.Add( new PropertyField(copy, String.Empty) );//{ style = { flexGrow = 1f} } );
+					propsInline.Add( new PropertyField(copy, String.Empty){ style = { flexGrow = 1f} } );
 				
 				else
 					propsBlock.Add( new PropertyField(copy) );
