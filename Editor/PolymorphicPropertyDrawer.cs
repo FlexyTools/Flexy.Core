@@ -25,7 +25,7 @@ namespace Flexy.Core.Editor
 				return new PropertyField( property );
 			
 			var attr		= (PlymorphicAttribute)attribute;
-			var root		= new VisualElement( );
+			var root		= new VisualElement();
 			var baseType	= attr?.BaseType ?? GetType( property.managedReferenceFieldTypename );
 			
 			BuildUI(root, property, baseType, displayName);
@@ -121,7 +121,7 @@ namespace Flexy.Core.Editor
 		private static	Type			GetType				( String typename )		
 		{
 			if (String.IsNullOrWhiteSpace( typename ))
-				return null;
+				return null!;
 			
 			var parts		= typename.Split( ' ' );
 			return Type.GetType( $"{parts[1]}, {parts[0]}", false );

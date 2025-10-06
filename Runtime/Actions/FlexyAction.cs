@@ -31,9 +31,9 @@
 	[Serializable]
 	public class FlexyActionCodeCallbacks : FlexyActionSync
 	{
-		[SerializeReference] FlexyAction _next;
+		[SerializeReference] FlexyAction?	_next;
 		
-		private List<Action<ActionCtx>>	_callbacks;
+		private List<Action<ActionCtx>>?	_callbacks;
 		
 		public event Action<ActionCtx> Raised
 		{

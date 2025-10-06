@@ -15,8 +15,8 @@ namespace Flexy.Core.Binding
 
 		private		Single	_lastClickTime;
 		private		Single	_enableTime;
-		private		Action	_action;
-		private		Button	_button;
+		private		Action?	_action;
+		private		Button	_button = null!;
 
 		private		void	Do			( )	
 		{
@@ -47,8 +47,6 @@ namespace Flexy.Core.Binding
 				_lastClickTime = Time.unscaledTime;
 			}
 			
-			//Analytics.UI.Action( GetButtonNiceName( _button.transform ) );
-
 			_action?.Invoke( );
 			
 			Clicked.Raise( this );

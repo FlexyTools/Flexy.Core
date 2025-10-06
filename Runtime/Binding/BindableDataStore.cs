@@ -5,14 +5,14 @@ namespace Flexy.Core.Binding
 {
 	public class BindableDataStore : BindableBehaviour
 	{
-		[SerializeField] private String[]	_keys;
-		[SerializeField] private GameObject	_exposedObject;
+		[SerializeField] private String[]		_keys = null!;
+		[SerializeField] private GameObject?	_exposedObject;
 
 		private readonly Dictionary<String, Object> _objectsDict	= new Dictionary<String, Object>( );
 		private readonly Dictionary<String, Int64>	_dataDict		= new Dictionary<String, Int64>( );
 		
-		public Object MainObject { get; set; }
-		public GameObject ExposedObject => _exposedObject;
+		public Object? MainObject { get; set; }
+		public GameObject? ExposedObject => _exposedObject;
 
 		public void SetValue    ( String key, Sprite value )	
 		{
@@ -20,7 +20,7 @@ namespace Flexy.Core.Binding
 
 		  _objectsDict[key] = value;
 		}
-		public void SetValue    ( String key, Enum value )	
+		public void SetValue    ( String key, Enum value )		
 		{
 		  ThrowOnWrongKey( key );
 
@@ -28,9 +28,13 @@ namespace Flexy.Core.Binding
 		}		
 		public void SetValue    ( String key, Color value )		
 		{
-		  ThrowOnWrongKey( key );
+		  SetValue( key, (Color32)value );
+		}
+		public void SetValue    ( String key, Color32 value )		
+		{
+			ThrowOnWrongKey( key );
 
-		  _objectsDict[key] = value;
+			_dataDict[key] = UnsafeUtility.As<Color32, Int32>(ref value);
 		}
 		public void SetValue    ( String key, String value )	
 		{
@@ -101,24 +105,26 @@ namespace Flexy.Core.Binding
 			
 			return UnsafeUtility.As<Int32, Single>(ref val);
 		}
-		[Bindable]	public Sprite	GetSprite   ( String key )
+		[Bindable]	public Color32	GetColor	( String key )
 		{
-			return (Sprite)GetObjectVal( key );
+			var val = GetDataVal( key );
+			return UnsafeUtility.As<Int32, Color32>(ref val);
 		}
-		[Bindable]	public Color	GetColor	( String key )
+		[Bindable]	public Sprite?	GetSprite   ( String key )
 		{
-			return (Color)GetObjectVal( key );
+			return (Sprite?)GetObjectVal( key );
 		}
-		[Bindable]	public String	GetString   ( String key )
+		
+		[Bindable]	public String?	GetString   ( String key )
 		{
-			return (String)GetObjectVal( key );
+			return (String?)GetObjectVal( key );
 		}
 		[Bindable]	public Boolean	GetBoolean  ( String key )
 		{
 			return GetDataVal( key ) != 0;
 		}
 
-		private	Object	GetObjectVal	( String key )
+		private	Object?	GetObjectVal	( String key )
 		{
 			Object val;
 			return _objectsDict.TryGetValue( key, out val ) ? val : null;
@@ -147,6 +153,12 @@ namespace Flexy.Core.Binding
 						var value = a(this);
 
 						return UnsafeUtility.As<Single, Int32>(ref value);
+					}
+					case Func<BindableDataStore, Color32> a:		
+					{
+						var value = a(this);
+
+						return UnsafeUtility.As<Color32, Int32>(ref value);
 					}
 				}
 			}
@@ -179,14 +191,20 @@ namespace Flexy.Core.Binding
 
 						return UnsafeUtility.As<Single, Int32>(ref value);
 					}
+					case Func<BindableDataStore, Color32> a:		
+					{
+						var value = a(this);
+
+						return UnsafeUtility.As<Color32, Int32>(ref value);
+					}
 				}
 			}
 
 			return 0;
 		}
 		
-		public Action<BindableDataStore>		Click;
-		public Action<BindableDataStore, Int32>	ClickWithData;
+		public Action<BindableDataStore>?			Click;
+		public Action<BindableDataStore, Int32>?	ClickWithData;
 
 		[Callable] public void DoClick( )
 		{

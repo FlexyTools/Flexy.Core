@@ -3,8 +3,8 @@
 [Serializable]
 public class PlayClip : FlexyActionAsync
 {
-	[SerializeField]	Animation		_animation;
-	[SerializeField]	AnimationClip	_clip;
+	[SerializeField]	Animation		_animation = null!;
+	[SerializeField]	AnimationClip	_clip = null!;
 	
 	public override async UniTask DoAsync( ActionCtx ctx )
 	{

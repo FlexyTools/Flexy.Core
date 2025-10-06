@@ -3,8 +3,8 @@
 	[Serializable]
 	public class PlayAnimState : FlexyActionAsync
 	{
-		[SerializeField]	Animator	_animator;
-		[SerializeField]	String		_stateName;
+		[SerializeField]	Animator	_animator = null!;
+		[SerializeField]	String		_stateName = null!;
 		
 		public override async UniTask DoAsync( ActionCtx ctx )
 		{

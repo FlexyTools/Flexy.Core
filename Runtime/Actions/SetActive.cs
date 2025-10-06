@@ -3,7 +3,7 @@
 	[Serializable]
 	public class SetActive : FlexyActionSync
 	{
-		[SerializeField] GameObject	_target;
+		[SerializeField] GameObject	_target = null!;
 		[SerializeField] Boolean	_reverse;
 		
 		public override void Do(ActionCtx ctx)	

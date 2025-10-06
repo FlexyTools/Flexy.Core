@@ -3,7 +3,7 @@
 [Serializable]
 public class SetContext : FlexyActionSync
 {
-	[SerializeField]	Component	_newContext;
+	[SerializeField]	Component	_newContext = null!;
 	
 	public override void Do(ActionCtx ctx)
 	{

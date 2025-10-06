@@ -8,10 +8,13 @@ namespace Flexy.Core.Actions
 	{
 		[FormerlySerializedAs("Type")] 
 		[SerializeField]		EType			Run;
-		[SerializeReference]	FlexyAction[]	Actions;
+		[SerializeReference]	FlexyAction[]?	Actions;
 		
 		public override async UniTask DoAsync	( ActionCtx ctx )
 		{
+			if (Actions == null)
+				return;
+			
 			switch (Run)
 			{
 				case EType.Sequential:

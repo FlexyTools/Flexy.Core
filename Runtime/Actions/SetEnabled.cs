@@ -3,7 +3,7 @@
 	[Serializable]
 	public class SetEnabled : FlexyActionSync
 	{
-		[SerializeField] MonoBehaviour	_target;
+		[SerializeField] MonoBehaviour	_target = null!;
 		[SerializeField] Boolean		_enabled;
 		
 		public override void Do(ActionCtx ctx)

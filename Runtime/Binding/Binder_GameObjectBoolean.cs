@@ -4,10 +4,10 @@
 	public class Binder_GameObjectBoolean : Binder
 	{
 		[SerializeField]	Boolean			_disableObjectsOnAwake;
-		[SerializeField]	GameObject		_true;
-	    [SerializeField]	GameObject		_false;
+		[SerializeField]	GameObject?		_true;
+	    [SerializeField]	GameObject?		_false;
 
-	    private				Func<Boolean>	_getter;
+	    private				Func<Boolean>	_getter = null!;
 
 	    private				void	Awake		( )					
 	    {

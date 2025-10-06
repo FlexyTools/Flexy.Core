@@ -4,11 +4,11 @@ namespace Flexy.Core.Binding
 {
 	public abstract class CallBinder : MonoBehaviour
 	{
-		[SerializeField]	private	Component	_target;
-		[SerializeField]	private	String		_methodName;
-		[SerializeField]	private	String		_context;
+		[SerializeField]	private	Component	_target		= null!;
+		[SerializeField]	private	String		_methodName	= null!;
+		[SerializeField]	private	String		_context	= null!;
 		
-		protected void Init( ref Action action )
+		protected void Init( ref Action? action )
 		{
 			GetMethodDelegate(this, _target, _methodName, ref action, _context );
 
@@ -16,7 +16,7 @@ namespace Flexy.Core.Binding
 				Debug.LogWarning		( $"[CallBinder] - Bind Init Fail: source object {name}, target {(_target ? _target.name : "null")} -> {_methodName}", this );
 		}
 		
-		private static	void	GetMethodDelegate	( MonoBehaviour @this, Component target, String methodName, ref Action action, String props = null )
+		private static	void	GetMethodDelegate	( MonoBehaviour @this, Component target, String methodName, ref Action? action, String? props = null )
 		{
 			var methods	= target.GetType( ).GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic );
 
@@ -32,7 +32,7 @@ namespace Flexy.Core.Binding
 				return;
 			}
 		}
-		private static	Action	BindMethod			( MonoBehaviour @this, Object target, MethodInfo method, String parameters )	
+		private static	Action?	BindMethod			( MonoBehaviour @this, Object target, MethodInfo method, String? parameters )	
 		{
 			var @params			= method.GetParameters ( );
 			var isUniTaskVoid	= method.ReturnParameter?.ParameterType  == typeof(UniTaskVoid);
@@ -40,7 +40,7 @@ namespace Flexy.Core.Binding
 			if ( @params.Length == 0 )
 			{
 				return isUniTaskVoid 
-					? new ZeroParamBinderVoid{  Function = (Func<UniTaskVoid>)Delegate.CreateDelegate( typeof(Func<UniTaskVoid>), target, method ) }.SetValue 
+					? new ZeroParamBinderVoid( (Func<UniTaskVoid>)Delegate.CreateDelegate( typeof(Func<UniTaskVoid>), target, method ) ).SetValue 
 					: (Action)Delegate.CreateDelegate( typeof(Action), target, method );
 			}
 
@@ -92,43 +92,26 @@ namespace Flexy.Core.Binding
 			static Action FinalBind<T>( Boolean isUniTaskVoid, T val, Object target, MethodInfo method )
 			{
 				return isUniTaskVoid 
-					? new OneParamBinderVoid<T>		{ Param = val, Function = (Func<T, UniTaskVoid>)	Delegate.CreateDelegate( typeof(Func<T, UniTaskVoid>),	target, method ) }.SetValue
-					: (Action) new OneParamBinder<T>{ Param = val, Function = (Action<T>)				Delegate.CreateDelegate( typeof(Action<T>),				target, method ) }.SetValue;
+					? new OneParamBinderVoid<T>		( val, (Func<T, UniTaskVoid>)	Delegate.CreateDelegate( typeof(Func<T, UniTaskVoid>),	target, method ) ).SetValue
+					: (Action) new OneParamBinder<T>( val,  (Action<T>)				Delegate.CreateDelegate( typeof(Action<T>),				target, method ) ).SetValue;
 			}
 
 			return null;
 		}
 	
-		private class		OneParamBinder<TParam>		
+		private record		OneParamBinder<TParam>( TParam Param, Action<TParam> Function )		
 		{
-			public		TParam			Param;
-			public		Action<TParam>	Function;
-
-			public		void		SetValue	( )
-			{
-				Function( Param );
-			}
+			public	void		SetValue	( ) => Function( Param );
 		}
 
-		private class		ZeroParamBinderVoid
+		private record		ZeroParamBinderVoid( Func<UniTaskVoid> Function )
 		{
-			public		Func<UniTaskVoid>	Function;
-
-			public		void		SetValue	( )
-			{
-				Function( );
-			}
+			public	void		SetValue	( ) => Function( );
 		}
 
-		private class		OneParamBinderVoid<TParam>		
+		private record		OneParamBinderVoid<TParam>( TParam Param, Func<TParam, UniTaskVoid> Function )		
 		{
-			public		TParam						Param;
-			public		Func<TParam, UniTaskVoid>	Function;
-
-			public		void		SetValue	( )
-			{
-				Function( Param ).Forget( );
-			}
+			public	void		SetValue	( ) => Function( Param ).Forget( );
 		}
 	}
 }

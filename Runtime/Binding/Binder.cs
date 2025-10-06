@@ -268,11 +268,11 @@ namespace Flexy.Core.Binding
 				
 					if( paramType == typeof(BindableDataStore) )
 					{
-						return ( new OneParamBinder<BindableDataStore,TResult>{ Param = gameObject.GetComponent<BindableDataStore>(), Function = (Func<BindableDataStore, TResult>)Delegate.CreateDelegate( typeof(Func<BindableDataStore, TResult>), target, method ) } ).GetValue;
+						return new OneParamBinder<BindableDataStore,TResult>( gameObject.GetComponent<BindableDataStore>(), (Func<BindableDataStore, TResult>)Delegate.CreateDelegate( typeof(Func<BindableDataStore, TResult>), target, method ) ).GetValue;
 					}
 					if( paramType == typeof(GameObject) )
 					{
-						return ( new OneParamBinder<GameObject,TResult>{ Param = gameObject, Function = (Func<GameObject, TResult>)Delegate.CreateDelegate( typeof(Func<GameObject, TResult>), target, method ) } ).GetValue;
+						return new OneParamBinder<GameObject,TResult>( gameObject, (Func<GameObject, TResult>)Delegate.CreateDelegate( typeof(Func<GameObject, TResult>), target, method ) ).GetValue;
 					}
 					
 					if ( paramType.IsEnum )
@@ -293,12 +293,12 @@ namespace Flexy.Core.Binding
 				}
 			}
 
-			return null;
+			return null!;
 		}
 		private					Func<TResult>	CreateGetDelegate<TParam,TResult>	( Object target, MethodInfo method, TParam param )		
 		{
 			if ( !method.ReturnType.IsEnum )
-				return ( new OneParamBinder<TParam,TResult>{ Param = param, Function = (Func<TParam, TResult>)Delegate.CreateDelegate( typeof(Func<TParam, TResult>), target, method ) } ).GetValue;
+				return new OneParamBinder<TParam,TResult>( param, (Func<TParam, TResult>)Delegate.CreateDelegate( typeof(Func<TParam, TResult>), target, method ) ).GetValue;
 		
 			var enumType  = method.ReturnType;
 			var intType   = Enum.GetUnderlyingType( enumType );
@@ -313,7 +313,7 @@ namespace Flexy.Core.Binding
 				
 					Int32 InternalInvoke ()
 					{ 
-						var @params		= new object[]{param};
+						var @params		= new object?[]{param};
 						var obj			= d.DynamicInvoke( @params );
 						var result		= Convert.ToInt32( obj );
 
@@ -352,45 +352,45 @@ namespace Flexy.Core.Binding
 		}
 		private					Action<TArg>	BindSetterMethod<TArg>				( Object target, MethodInfo method, String parameters )	
 		{
-			var @params = method.GetParameters ( );
+			var @params = method.GetParameters();
 
-			if( @params.Length == 2 )
+			if (@params.Length == 2)
 			{
 				var paramType = @params[0].ParameterType;
 				
-				if( paramType == typeof(String) )
+				if (paramType == typeof(String))
 				{
-					return ( new OneParamSetterBinder<String, TArg>{ Action = (Action<String, TArg>)Delegate.CreateDelegate( typeof(Action<String, TArg>), target, method ) } ).SetValue;
+					return new OneParamSetterBinder<String, TArg>( parameters, (Action<String, TArg>)Delegate.CreateDelegate( typeof(Action<String, TArg>), target, method ) ).SetValue;
 				}
-				if( paramType == typeof(Int32) )
+				if (paramType == typeof(Int32))
 				{
 					var result = 0;
 					if( Int32.TryParse ( parameters, out result ) )
-						return ( new OneParamSetterBinder<Int32,TArg>{ Param = result, Action = (Action<Int32, TArg>)Delegate.CreateDelegate( typeof(Action<Int32, TArg>), target, method ) } ).SetValue;
+						return new OneParamSetterBinder<Int32,TArg>( result, (Action<Int32, TArg>)Delegate.CreateDelegate( typeof(Action<Int32, TArg>), target, method ) ).SetValue;
 				}
-				if( paramType == typeof(Single) )
+				if (paramType == typeof(Single))
 				{
 					var result = 0.0f;
 					if( Single.TryParse ( parameters, out result ) )
-						return ( new OneParamSetterBinder<Single,TArg>{ Param = result, Action = (Action<Single, TArg>)Delegate.CreateDelegate( typeof(Action<Single, TArg>), target, method ) } ).SetValue;
+						return new OneParamSetterBinder<Single,TArg>( result, (Action<Single, TArg>)Delegate.CreateDelegate( typeof(Action<Single, TArg>), target, method ) ).SetValue;
 				}
-				if( paramType == typeof(Boolean) )
+				if (paramType == typeof(Boolean))
 				{
 					var result = false;
 					if( Boolean.TryParse ( parameters, out result ) )
-						return ( new OneParamSetterBinder<Boolean,TArg>{ Param = result, Action = (Action<Boolean, TArg>)Delegate.CreateDelegate( typeof(Action<Boolean, TArg>), target, method ) } ).SetValue;
+						return new OneParamSetterBinder<Boolean,TArg>( result, (Action<Boolean, TArg>)Delegate.CreateDelegate( typeof(Action<Boolean, TArg>), target, method ) ).SetValue;
 				}
-				if( paramType == typeof(BindableDataStore) )
+				if (paramType == typeof(BindableDataStore))
 				{
-					return ( new OneParamSetterBinder<BindableDataStore,TArg>{ Param = gameObject.GetComponent<BindableDataStore>(), Action = (Action<BindableDataStore, TArg>)Delegate.CreateDelegate( typeof(Action<BindableDataStore, TArg>), target, method ) } ).SetValue;
+					return new OneParamSetterBinder<BindableDataStore,TArg>( gameObject.GetComponent<BindableDataStore>(), (Action<BindableDataStore, TArg>)Delegate.CreateDelegate( typeof(Action<BindableDataStore, TArg>), target, method ) ).SetValue;
 				}
-				if( paramType == typeof(GameObject) )
+				if (paramType == typeof(GameObject))
 				{
-					return ( new OneParamSetterBinder<GameObject,TArg>{ Param = gameObject, Action = (Action<GameObject, TArg>)Delegate.CreateDelegate( typeof(Action<GameObject, TArg>), target, method ) } ).SetValue;
+					return new OneParamSetterBinder<GameObject,TArg>( gameObject, (Action<GameObject, TArg>)Delegate.CreateDelegate( typeof(Action<GameObject, TArg>), target, method ) ).SetValue;
 				}
 			}
 
-			return null;
+			return null!;
 		}		
 
 		private static			String			GetHierarchyName	( Transform t, Int32 steps = 99 )	
@@ -418,48 +418,24 @@ namespace Flexy.Core.Binding
 			public	String		Params;
 		}
 		
-		internal class		ZeroParamBinderWithConvert<TResult, TResult2>		
+		internal record		ZeroParamBinderWithConvert<TResult, TResult2>( Func<TResult> Function, Func<TResult, TResult2> Converter )		
 		{
-			public		Func<TResult>			Function;
-			public		Func<TResult, TResult2>	Converter;
-			
-			public		TResult2	GetValue	( )
-			{
-				return Converter(Function( ));
-			}
+			public		TResult2	GetValue	( ) => Converter(Function( ));
 		}
 		
-		public class		OneParamBinder<TArg,TResult>		
+		public record		OneParamBinder<TArg,TResult>( TArg Param, Func<TArg, TResult> Function )		
 		{
-			public		TArg					Param;
-			public		Func<TArg, TResult>		Function;
-			public		TResult		GetValue	( )
-			{
-				return Function( Param );
-			}
+			public		TResult		GetValue	( ) => Function( Param );
 		}
 		
-		internal class		OneParamBinderWithConvert<TArg,TResult, TResult2>		
+		internal record		OneParamBinderWithConvert<TArg,TResult, TResult2>( TArg Param, Func<TArg, TResult> Function, Func<TResult, TResult2> Converter )		
 		{
-			public		TArg					Param;
-			public		Func<TArg, TResult>		Function;
-			public		Func<TResult, TResult2>	Converter;
-			
-			public		TResult2	GetValue	( )
-			{
-				return Converter(Function( Param ));
-			}
+			public		TResult2	GetValue	( ) => Converter(Function( Param ));
 		}
 		
-		private class		OneParamSetterBinder<TArg, TInputArg>		
+		private record		OneParamSetterBinder<TArg, TInputArg>( TArg Param, Action<TArg, TInputArg>? Action )		
 		{
-			public		TArg							Param;
-			public		Action<TArg, TInputArg>			Action;
-
-			public		void		SetValue	( TInputArg param )
-			{
-				Action( Param, param );
-			}
+			public		void		SetValue	( TInputArg param ) => Action?.Invoke( Param, param );
 		}		
 		
 		public static class Internal
