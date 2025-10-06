@@ -31,7 +31,7 @@ public static class TestCaseDropdown
 	}
 	public static Boolean	TryGetTestCaseToLaunch	( String providerName, out String testCase )	
 	{
-		testCase = null;
+		testCase = null!;
 		if( IsTestLaunched_InThisSession )
 			return false;
 		

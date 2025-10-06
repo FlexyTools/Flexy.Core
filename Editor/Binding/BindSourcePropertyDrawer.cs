@@ -13,10 +13,10 @@ namespace Flexy.Core.Editor.Binding
 	[CustomPropertyDrawer(typeof(Binder.BindSource), true)]
 	public class BindSourcePropertyDrawer : PropertyDrawer
 	{
-		private		List<Component>		_properties;
-		private		List<String>		_propertyNames;
-		private		String[]			_propertyNamesNice;
-		private		Type				_bindType;
+		private		List<Component>		_properties 		= null!;
+		private		List<String>		_propertyNames 		= null!;
+		private		String[]			_propertyNamesNice 	= null!;
+		private		Type				_bindType 			= null!;
 
 		public override Single	GetPropertyHeight	( SerializedProperty property, GUIContent label )
 		{

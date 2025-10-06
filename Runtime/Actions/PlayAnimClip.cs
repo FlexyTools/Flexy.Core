@@ -1,7 +1,7 @@
 ﻿namespace Flexy.Core.Actions;
 
 [Serializable]
-public class PlayClip : FlexyActionAsync
+public class PlayAnimClip : FlexyActionAsync
 {
 	[SerializeField]	Animation		_animation = null!;
 	[SerializeField]	AnimationClip	_clip = null!;

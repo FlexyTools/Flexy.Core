@@ -11,11 +11,11 @@ namespace Flexy.Core.Editor.Binding
 	//[CustomEditor(typeof(BindableDataStore), true), CanEditMultipleObjects]
 	public class BindableDataStoreEditor : UnityEditor.Editor
 	{
-		protected	List<Component>		_properties;
-		protected	List<String>		_propertyNames;
-		protected	String[]			_propertyNamesNice;
-		protected	String[]			_excludingProperties = {"m_Script", "_target", "_memberName", "_params"};
-		protected	Type				_memberType;
+		protected	List<Component>		_properties				= null!;
+		protected	List<String>		_propertyNames			= null!;
+		protected	String[]			_propertyNamesNice		= null!;
+		protected	String[]			_excludingProperties	= {"m_Script", "_target", "_memberName", "_params"};
+		protected	Type				_memberType				= null!;
 
 		public override		void				OnInspectorGUI		( )				
 		{

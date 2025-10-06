@@ -15,10 +15,10 @@ namespace Flexy.Core.Editor.Binding
 	[CustomEditor(typeof(CallBinder), true), CanEditMultipleObjects]
 	public class CallBinderEditor : UnityEditor.Editor 
 	{
-		private				List<Component>		_methodsComponents;
-		private				List<MethodInfo>	_methods;
-		private				List<String>		_methodNames;
-		private				String[]			_methodNamesNice;
+		private				List<Component>		_methodsComponents	= null!;
+		private				List<MethodInfo>	_methods			= null!;
+		private				List<String>		_methodNames		= null!;
+		private				String[]			_methodNamesNice	= null!;
 
 		public override		VisualElement		CreateInspectorGUI	( )		
 		{

@@ -1,9 +1,5 @@
-﻿using Flexy.Core;
-using Flexy.Core.Actions;
-
-namespace asd.Module.Action.TurnBased
+﻿namespace Flexy.Core.Actions
 {
-
 	public class EventsBox_LateUpdate : MonoBehaviour
 	{
 		[SerializeField]	FlexyEvent	_lateUpdate;

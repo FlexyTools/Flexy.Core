@@ -6,8 +6,7 @@ namespace Flexy.Core.Actions
 	[Serializable]
 	public class ActionSet: FlexyActionAsync
 	{
-		[FormerlySerializedAs("Type")] 
-		[SerializeField]		EType			Run;
+		[SerializeField]		ERunType		Run;
 		[SerializeReference]	FlexyAction[]?	Actions;
 		
 		public override async UniTask DoAsync	( ActionCtx ctx )
@@ -17,7 +16,7 @@ namespace Flexy.Core.Actions
 			
 			switch (Run)
 			{
-				case EType.Sequential:
+				case ERunType.Sequential:
 				{
 					foreach ( var act in Actions )
 						try						{ await act.DoAsync( ctx ); }
@@ -26,7 +25,7 @@ namespace Flexy.Core.Actions
 					break;
 				}
 
-				case EType.Simultanously:
+				case ERunType.Simultanously:
 				{
 					try						{ await UniTask.WhenAll( Enumerable.Select(Actions, a => a.DoAsync( ctx ) ).ToArray( ) ); }
 					catch ( Exception ex )	{ Debug.LogException( ex ); }
@@ -37,7 +36,7 @@ namespace Flexy.Core.Actions
 			}
 		}
 
-		private enum EType 
+		private enum ERunType 
 		{
 			Sequential,
 			Simultanously,

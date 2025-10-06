@@ -48,7 +48,7 @@ namespace Flexy.Core.Editor.ToolbarControls
 		private static readonly VisualElement RightPocket_Center= new( ){ name = "Right Pocket - Center",	style = { flexGrow = 1, flexDirection = FlexDirection.Row } };
 		private static readonly VisualElement RightPocket_Right	= new( ){ name = "Right Pocket - Right",	style = { flexGrow = 1, flexDirection = FlexDirection.RowReverse } };
 
-		private static ScriptableObject _editorToolbarPanel;		
+		private static ScriptableObject? _editorToolbarPanel;		
 		
 		private static void ImguiUI		( Action onGUI )	
 		{
@@ -226,16 +226,16 @@ namespace Flexy.Core.Editor.ToolbarControls
 			[Serializable]
 			private class SavedElements 
 			{
-				public List<ElementData> List; 
+				public List<ElementData>? List; 
 			}
 			
 			[Serializable]
 			private class ElementData
 			{
-				public String Name;
+				public String Name = null!;
 				public Boolean Enabled = true;
 				[NonSerialized]
-				public VisualElement Element;
+				public VisualElement Element = null!;
 			}
 		}
 	}

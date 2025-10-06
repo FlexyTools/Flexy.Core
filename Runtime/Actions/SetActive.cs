@@ -10,9 +10,5 @@
 		{
 			_target.SetActive( !_reverse );
 		}
-		public override void DoBack(ActionCtx ctx)	
-		{
-			_target.SetActive( _reverse );
-		}
 	}
 }
