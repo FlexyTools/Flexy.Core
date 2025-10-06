@@ -1,23 +1,19 @@
 ﻿using System.Linq;
 using System.Reflection;
 using Flexy.AssetRefs;
-using Flexy.Core.Extensions;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 
-namespace Flexy.Core
+namespace Flexy.Core.GameContexts
 {
 	[DefaultExecutionOrder(Int16.MinValue+200)]
 	public class GameContext : MonoBehaviour
 	{
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void StaticClear( )
+		[RuntimeStaticClear]	static void StaticClear	( )
 		{
-			_global = null;
-			_sceneToCtxRegistry.Clear( );
+			_global = null!;
+			_sceneToCtxRegistry.Clear();
 		}
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-		private static void StaticBind( )
+		[RuntimeStaticInit]		static void StaticInit	( )
 		{
 			SceneManager.sceneUnloaded -= ClearSceneRegistration;
 			SceneManager.sceneUnloaded += ClearSceneRegistration;
@@ -33,39 +29,34 @@ namespace Flexy.Core
 		}
 
         [Header("Game Ctx")]
-		[SerializeField]	String				_name;
-		[SerializeField]	GameObject			_services;
+		[SerializeField]	GameObject?			_services;
 		[SerializeField]	Boolean				_ignoreServiceInitFailures;
-		[FormerlySerializedAs("SceneRegistration")]
 		public				ELinkCtxTo	        LinkTo;
 		
-		protected static	GameContext			_global;
-		internal			GameContext			_parent;
+		protected static	GameContext			_global = null!;
+		private				GameContext?		_parent;
 		private readonly	List<GameContext>	_children = new(4);
-		private				GameObject			_systems;
 		private				Boolean				_isAlive;
 		private				IGameContextExtension?	_ext;
 		
 		private static readonly		Dictionary<Scene, GameContext>	_sceneToCtxRegistry = new ( );
 		private readonly			Dictionary<Type, Object>		_registeredServicesDict	= new ( );
 		
-
 		public static	GameContext		Global					=> _global.OrNull() is not null ? _global : _global = CreateGlobalContext();
-		public			GameContext		ParentContext			=> _parent;
+		public			GameContext?	Parent					=> _parent;
 
-		public			EInitializing	Initializing			{ get; protected set; }
+		public			EInitializing	InitStatus				{ get; protected set; }
 
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
-		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene ); // go.transform.root.TryGetComponent<GameContext>( out var rootCtx ) ? rootCtx : GetCtx( go.scene );
+		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene );
 		public static 	GameContext		GetCtx					( Scene scene )		=> _sceneToCtxRegistry.TryGetValue( scene, out var ctx ) ? ctx : Global;
-		public			void			RegisterGameScene		( Scene scene )
+		public			void			RegisterGameScene		( Scene scene )		
 		{
-			Debug.Log( $"[GameCtx] {_name} - Register scene: {scene.name}" );
+			Debug.Log( $"[GameCtx] {name} - Register scene: {scene.name}" );
 			_sceneToCtxRegistry[scene] = this;
 		}
 
 		public	Boolean					IsAlive					=> _isAlive;
-		public	String					Name					=> _name;
 
 		protected		void			Awake					( )		
 		{
@@ -85,16 +76,13 @@ namespace Flexy.Core
 				_ext?.SetParent(_parent);
 			}
 
-			if( String.IsNullOrWhiteSpace( _name ) )
-				_name = gameObject.name + " Context";
-
-			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {_name} - Awake \t parent:{_parent}", this );
+			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {name} - Awake \t parent:{_parent}", this );
 
 			switch( LinkTo )
 			{
 				case ELinkCtxTo.AllScenes:
 				{
-					Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {_name} - Register Scenes: All", this );
+					Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {name} - Register Scenes: All", this );
 					RegisterGameScene( _global.gameObject.scene );
 					var count = SceneManager.sceneCount;
 					for ( var i = 0; i < count; i++ )
@@ -104,13 +92,13 @@ namespace Flexy.Core
 				}
 				case ELinkCtxTo.LocalScene:
 				{
-					Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {_name} - Register Scenes: One", this );
+					Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {name} - Register Scenes: One", this );
 					RegisterGameScene( gameObject.scene );
 					break;
 				}
 				default:
 				{
-					Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {_name} - Register Scenes: None", this );
+					Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {name} - Register Scenes: None", this );
 					break;
 				}
 			}
@@ -140,7 +128,7 @@ namespace Flexy.Core
 		}
 		protected		void			OnDestroy				( )		
 		{
-			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {_name} - OnDestroy \t parent:{_parent}", this );
+			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {name} - OnDestroy \t parent:{_parent}", this );
 			
 			_isAlive = false;
 
@@ -154,16 +142,12 @@ namespace Flexy.Core
 			}
 		}
 
-		public			void			SetName					( String newName )
-		{
-			_name = newName;
-		}
-		public			void			SetParent				( GameContext ctx )
+		public			void			SetParent				( GameContext ctx )				
 		{
 			_parent = ctx;
 			_ext?.SetParent(_parent);
 		}
-		public 			void			RegisterCtxServices		( )
+		public 			void			RegisterCtxServices		( )								
 		{
 			foreach ( var svc in gameObject.GetComponents<IService>( ) )
 				SetService( svc );
@@ -189,7 +173,7 @@ namespace Flexy.Core
 					SetService( service );
 			}
 		}
-		public			T				GetService<T>			( ) where T : class
+		public			T?				GetService<T>			( ) where T : class				
 		{
 			if( _registeredServicesDict.TryGetValue( typeof(T), out var svc ) )
 				return svc as T;
@@ -201,19 +185,16 @@ namespace Flexy.Core
 					return result;
 			}
 
-			if (_ext != null)
-				return _ext.GetService<T>();
-			
-			return default;
+			return _ext?.GetService<T>();
 		}
-		public			void			SetService<T>			( T service )	where T : class
+		public			void			SetService<T>			( T service )	where T : class	
 		{
 			if( service == null )
 				return;
 
 			var typeActual	= service.GetType( );
 
-			Debug.Log	( $"[GameCtx] {Name} - SetService: {GetDisplayServiceName(typeActual)}" );
+			Debug.Log	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(typeActual)}" );
 			try { _registeredServicesDict.Add( typeActual, service ); }
 			catch ( Exception ex ) { Debug.LogException( ex ); }
 
@@ -224,7 +205,7 @@ namespace Flexy.Core
 					if ( !serviceType.IsAssignableFrom( typeActual ) )
 						continue;
 
-					Debug.Log	( $"[GameCtx] {Name} - SetService: {GetDisplayServiceName(serviceType)} => {GetDisplayServiceName(typeActual)}" );
+					Debug.Log	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(serviceType)} => {GetDisplayServiceName(typeActual)}" );
 					try { _registeredServicesDict.Add( serviceType, service ); }
 					catch ( Exception ex ) { Debug.LogException( ex ); }
 				}
@@ -235,14 +216,14 @@ namespace Flexy.Core
 			#endif
 		}
 
-		public async		UniTask<EInitializing> WaitInitializing	( )	
+		public async		UniTask<EInitializing> WaitInitializing	( )								
 		{
-			while (Initializing == EInitializing.InProgress)
+			while (InitStatus == EInitializing.InProgress)
 				await UniTask.Yield();
 			
-			return Initializing;
+			return InitStatus;
 		}
-		protected virtual 		void	InitializeServices		( IService[] services )
+		protected virtual 		void	InitializeServices		( IService[] services )				
 		{
 			foreach ( var service in services )
 			{
@@ -255,13 +236,13 @@ namespace Flexy.Core
 					Debug.LogException( ex );
 					if( !_ignoreServiceInitFailures )
 					{
-						Initializing = EInitializing.InitFail;
+						InitStatus = EInitializing.InitFail;
 						break;
 					}
 				}
 			}
 		}
-		protected virtual async	UniTask	InitializeAsyncServices	( IServiceAsync[] asyncServices )
+		protected virtual async	UniTask	InitializeAsyncServices	( IServiceAsync[] asyncServices )	
 		{
 			foreach ( var service in asyncServices )
 			{
@@ -274,24 +255,24 @@ namespace Flexy.Core
 					Debug.LogException( ex );
 					if( !_ignoreServiceInitFailures )
 					{
-						Initializing = EInitializing.InitFail;
+						InitStatus = EInitializing.InitFail;
 						break;
 					}
 				}
 			}
 		}
-		private async			UniTask	DoInitializeAsyncServices( IServiceAsync[] asyncServices )
+		private async			UniTask	DoInitializeAsyncServices( IServiceAsync[] asyncServices )	
 		{
-			if( Initializing == EInitializing.InitFail ) 
+			if( InitStatus == EInitializing.InitFail ) 
 				return;
 			
 			await InitializeAsyncServices( asyncServices );
 			
-			if( Initializing != EInitializing.InitFail ) 
-				Initializing = EInitializing.Done;
+			if( InitStatus != EInitializing.InitFail ) 
+				InitStatus = EInitializing.Done;
 		}
 		
-		public static	String			GetDisplayServiceName	( Type svcType )
+		public static	String			GetDisplayServiceName	( Type svcType )								
 		{
 			var result = "";
 
@@ -309,43 +290,43 @@ namespace Flexy.Core
 
 			return result;
 		}
-		private static	GameContext		CreateGlobalContext		( )
+		private static	GameContext		CreateGlobalContext		( )												
 		{
 			var go = new GameObject( "Flexy GlobalCtx Autogenerated", typeof(GameContext) );
 			DontDestroyOnLoad( go );
 			
 			var ctx = go.GetComponent<GameContext>( );
-			ctx._name = "Flexy GlobalCtx Autogenerated";
+			ctx.name = "Flexy GlobalCtx Autogenerated";
 			
-			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {ctx._name} - Autogenerate", ctx );
+			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {ctx.name} - Autogenerate", ctx );
 
 			return ctx;
 		}
-		private static 	void			ClearSceneRegistration	( Scene scene )
+		private static 	void			ClearSceneRegistration	( Scene scene )									
 		{
 			Debug.Log( $"{Time.frameCount} [GameCtx] ClearSceneRegistration {scene.name}" );
 			_sceneToCtxRegistry.Remove( scene );
 		}
-		private static 	void			RegisterCreatedScene	( Scene oldScene, Scene newScene )
+		private static 	void			RegisterCreatedScene	( Scene oldScene, Scene newScene )				
 		{
 			if( _sceneToCtxRegistry.ContainsKey( oldScene ) && !_sceneToCtxRegistry.ContainsKey( newScene ) )
             {
 				var ctx = _sceneToCtxRegistry[oldScene];
-				Debug.Log( $"{Time.frameCount} [GameCtx] {ctx.Name} - Register created scene: {newScene.name}" );
+				Debug.Log( $"{Time.frameCount} [GameCtx] {ctx.name} - Register created scene: {newScene.name}" );
 				ctx.RegisterGameScene( newScene );
 			}
 		}
-		private static 	void			RegisterSideLoadedScene	( Scene newScene, LoadSceneMode loadSceneMode )
+		private static 	void			RegisterSideLoadedScene	( Scene newScene, LoadSceneMode loadSceneMode )	
 		{
 			if( !_sceneToCtxRegistry.ContainsKey( newScene ) )
 			{
 				var scene	= SceneManager.GetActiveScene( );
 				var ctx		= _sceneToCtxRegistry[scene];
-				Debug.Log( $"{Time.frameCount} [GameCtx] {ctx.Name} - Register Side loaded scene: {newScene.name}" );
+				Debug.Log( $"{Time.frameCount} [GameCtx] {ctx.name} - Register Side loaded scene: {newScene.name}" );
 				ctx.RegisterGameScene( newScene );
 			}
 		}
-		private static 	void			RegisterLoadedScene		( Scene ctx, Scene newScene )
+		private static 	void			RegisterLoadedScene		( Scene ctx, Scene newScene )					
 		{
 			GetCtx( ctx ).RegisterGameScene( newScene );
 		}
@@ -403,7 +384,7 @@ namespace Flexy.Core
 
 					foreach ( var pair in _sceneToCtxRegistry )
 					{
-						GUILayout.Label( $"{pair.Key.name} => {pair.Value.Name}" );
+						GUILayout.Label( $"{pair.Key.name} => {pair.Value.name}" );
 					}
 					GUILayout.EndVertical( );
 				}
@@ -425,7 +406,7 @@ namespace Flexy.Core
 			{
 				//Header
 				GUILayout.BeginHorizontal(  );
-				GUILayout.Label( $"{ctx.Name} ({ctx.GetType().Name})");
+				GUILayout.Label( $"{ctx.name} ({ctx.GetType().Name})");
 				GUILayout.FlexibleSpace();
 				if( GUILayout.Button( "?" ))
 				   UnityEditor.EditorGUIUtility.PingObject( ctx );
@@ -457,9 +438,9 @@ namespace Flexy.Core
 	
 	public static class GameContextExt
 	{
-		public static T GetService<T>( this GameObject src )	where T:class => src.CompareTag( "CtxRoot" ) ? src.GetComponent<GameContext>().GetService<T>() : src.scene.GetService<T>();
-		public static T GetService<T>( this MonoBehaviour src )	where T:class => src.gameObject.GetService<T>();
-		public static T GetService<T>( this Scene src )			where T:class => GameContext.GetCtx( src ).GetService<T>();
+		public static T? GetService<T>( this MonoBehaviour src )	where T:class => GameContext.GetCtx( src ).GetService<T>();
+		public static T? GetService<T>( this GameObject src )		where T:class => GameContext.GetCtx( src ).GetService<T>();
+		public static T? GetService<T>( this Scene src )			where T:class => GameContext.GetCtx( src ).GetService<T>();
 	}
 	
 	public enum EInitializing
@@ -475,7 +456,7 @@ namespace Flexy.Core
 		public Component	CallSource	{ get; set; }
 	}
 	
-	public static class ICachedContextExt
+	public static class CachedContextExt
 	{
 		public static	T	GetCached<T>	( this ref T cache, Component callSource ) where T:struct, ICachedContext
 		{

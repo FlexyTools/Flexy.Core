@@ -46,7 +46,7 @@ public struct TempList<T> : IDisposable
 		if( _array != null )
 			ArrayPool<T>.Shared.Return( _array );
 					
-		_array = null;
+		_array = null!;
 	}
 			
 	public void Add		( T item )	

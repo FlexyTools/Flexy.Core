@@ -5,16 +5,15 @@ namespace Flexy.Core;
 [Serializable]
 public struct LocString : ISerializeAsString
 {
-	public static Func<String, String> Localize;
-	//public static String[] Localisations = new []{"key","en", "ru", "ua"};
-	public static String[] Localisations = new []{"en"};
+	public static Func<String, String>? Localize;
+	public static String[] Localisations = {"en"};
 	
 	[SerializeField] String _key;
 
 	public static implicit operator String( LocString str ) => str.ToString( );
  	public static explicit operator LocString( String str ) => new (){ _key = str };
   
-	public override String ToString( ) => Localize == null ? _key : Localize?.Invoke( _key );
+	public override String ToString( ) => Localize == null ? _key : Localize.Invoke( _key );
 	
 	String	ISerializeAsString.ToString		( )				=> "'"+_key;
 	void	ISerializeAsString.FromString	( String data )	=>_key = data;

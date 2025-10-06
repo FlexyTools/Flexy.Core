@@ -1,4 +1,4 @@
-﻿namespace Flexy.Core
+﻿namespace Flexy.Core.GameContexts
 {
 	public class ServiceTypesAttribute: Attribute
 	{

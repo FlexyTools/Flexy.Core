@@ -9,7 +9,7 @@ namespace Flexy.Core
     [CustomEditor( typeof(MonoBehaviour), true), CanEditMultipleObjects]
     public class Editor_WithRuntimeGui : Editor 
     {
-	    protected	VisualElement	_root;
+	    protected	VisualElement	_root = null!;
 	    
 	    protected virtual	Boolean	DrawDefaultInspector => true;
 	    

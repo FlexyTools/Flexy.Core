@@ -1,6 +1,6 @@
 using UnityEngine.SceneManagement;
 
-namespace Flexy.Core
+namespace Flexy.Core.GameContexts
 {
 	[DefaultExecutionOrder(Int16.MinValue+150)]
 	public class SetCurrentSceneActive : MonoBehaviour

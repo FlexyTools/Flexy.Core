@@ -7,7 +7,7 @@ using VContainer.Diagnostics;
 using VContainer.Internal;
 using VContainer.Unity;
 
-namespace Flexy.Core;
+namespace Flexy.Core.GameContexts;
 
 [RequireComponent(typeof(GameContext))]	
 public class VContainerExtension: LifetimeScope, IGameContextExtension 

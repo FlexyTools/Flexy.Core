@@ -1,8 +1,8 @@
-﻿namespace Flexy.Core
+﻿namespace Flexy.Core.GameContexts
 {
 	public class MonoBehServices : ServiceProvider
 	{
-		[SerializeField] MonoBehaviour[] _services;
+		[SerializeField] MonoBehaviour[] _services = null!;
 			
 		public override void ProvideServices( GameContext ctx )
 		{
