@@ -243,39 +243,38 @@ namespace Flexy.Core.Binding
 				{
 					var paramType = @params[0].ParameterType;
 				
-					if( paramType == typeof(String) )
+					if (paramType == typeof(String))
 					{
 						return CreateGetDelegate<String, TResult>( target, method, parameters );
 					}
-					if( paramType == typeof(Int32) )
+					
+					if (paramType == typeof(Int32))
 					{
 						var result = 0;
 						if( Int32.TryParse ( parameters, out result ) )
 							return CreateGetDelegate<Int32, TResult>( target, method, result );
 					}
-					if( paramType == typeof(Single) )
+					
+					if (paramType == typeof(Single))
 					{
 						var result = 0.0f;
 						if( Single.TryParse ( parameters, out result ) )
 							return CreateGetDelegate<Single, TResult>( target, method, result );
 					}
-					if( paramType == typeof(Boolean) )
+					
+					if (paramType == typeof(Boolean))
 					{
 						var result = false;
 						if( Boolean.TryParse ( parameters, out result ) )
 							return CreateGetDelegate<Boolean, TResult>( target, method, result );
 					}
 				
-					if( paramType == typeof(BindableDataStore) )
-					{
-						return new OneParamBind<BindableDataStore,TResult>( gameObject.GetComponent<BindableDataStore>(), (Func<BindableDataStore, TResult>)Delegate.CreateDelegate( typeof(Func<BindableDataStore, TResult>), target, method ) ).GetValue;
-					}
-					if( paramType == typeof(GameObject) )
+					if (paramType == typeof(GameObject))
 					{
 						return new OneParamBind<GameObject,TResult>( gameObject, (Func<GameObject, TResult>)Delegate.CreateDelegate( typeof(Func<GameObject, TResult>), target, method ) ).GetValue;
 					}
 					
-					if ( paramType.IsEnum )
+					if (paramType.IsEnum)
 					{
 						var enumType	= paramType;
 						var intType		= Enum.GetUnderlyingType( enumType );
@@ -380,10 +379,7 @@ namespace Flexy.Core.Binding
 					if( Boolean.TryParse ( parameters, out result ) )
 						return new OneParamSetterBind<Boolean,TArg>( result, (Action<Boolean, TArg>)Delegate.CreateDelegate( typeof(Action<Boolean, TArg>), target, method ) ).SetValue;
 				}
-				if (paramType == typeof(BindableDataStore))
-				{
-					return new OneParamSetterBind<BindableDataStore,TArg>( gameObject.GetComponent<BindableDataStore>(), (Action<BindableDataStore, TArg>)Delegate.CreateDelegate( typeof(Action<BindableDataStore, TArg>), target, method ) ).SetValue;
-				}
+				
 				if (paramType == typeof(GameObject))
 				{
 					return new OneParamSetterBind<GameObject,TArg>( gameObject, (Action<GameObject, TArg>)Delegate.CreateDelegate( typeof(Action<GameObject, TArg>), target, method ) ).SetValue;
@@ -395,7 +391,8 @@ namespace Flexy.Core.Binding
 
 		private static			String			GetHierarchyName	( Transform t, Int32 steps = 99 )	
 		{
-			if ( t == null ) throw new ArgumentNullException( nameof( t ) );
+			if ( t == null ) 
+				throw new ArgumentNullException( nameof( t ) );
 			
 			var result = GetTransformHierarchyNameRecursive( t.parent, $"{t.name}", ref steps );
 			return result;

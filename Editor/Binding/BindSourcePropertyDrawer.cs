@@ -121,7 +121,7 @@ namespace Flexy.Core.Editor.Binding
 						var method = bindTargetType.GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).FirstOrDefault( methodInfo => methodInfo.Name == memberName && bindType.IsAssignableFrom( methodInfo.ReturnType ) );
 						if( method != null )
 						{
-							var @params = method.GetParameters ( );
+							var @params = method.GetParameters();
 							if( @params.Length == 1 )
 							{
 								var desc = method.GetCustomAttribute<BindableAttribute>( true );
@@ -130,49 +130,53 @@ namespace Flexy.Core.Editor.Binding
 
 								var paramType = @params[0].ParameterType;
 								
-								if( paramType == typeof(String) )
+								if (paramType == typeof(String))
 								{
-									EditorGUI.BeginChangeCheck		( );
+									EditorGUI.BeginChangeCheck();
 									var val  	= EditorGUILayout.TextField ( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue );
 									
-									if( EditorGUI.EndChangeCheck ( ) )
+									if (EditorGUI.EndChangeCheck())
 										paramsProp.stringValue = val;
 								}
 								
-								else if( paramType == typeof(Single) )
+								else if (paramType == typeof(Single))
 								{
+									EditorGUI.BeginChangeCheck();
 									var val  	= EditorGUILayout.FloatField( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0.0f : Single.Parse( paramsProp.stringValue ) ).ToString( );
 									
-									if( EditorGUI.EndChangeCheck ( ) )
+									if (EditorGUI.EndChangeCheck())
 										paramsProp.stringValue = val;
 								}
 						
-								else if( paramType == typeof(Boolean) )
+								else if (paramType == typeof(Boolean))
 								{
+									EditorGUI.BeginChangeCheck();
 									var val  	= EditorGUILayout.Toggle( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue != "" && Boolean.Parse( paramsProp.stringValue ) ).ToString( );
 									
-									if( EditorGUI.EndChangeCheck ( ) )
+									if (EditorGUI.EndChangeCheck())
 										paramsProp.stringValue = val;
 								}
 
-								else if ( paramType.IsEnum )
+								else if (paramType.IsEnum)
 								{
-									var type = paramType;
+									EditorGUI.BeginChangeCheck();
+									var type	= paramType;
 									var val  	= Convert.ToInt32( EditorGUILayout.EnumPopup( ObjectNames.NicifyVariableName( type.Name ), (Enum)Enum.Parse( type, String.IsNullOrEmpty( paramsProp.stringValue ) ? Enum.GetNames(type)[0] : paramsProp.stringValue ) ) ).ToString( );
 									
-									if( EditorGUI.EndChangeCheck ( ) )
+									if (EditorGUI.EndChangeCheck())
 										paramsProp.stringValue = val;
 								}
 
-								else if( paramType == typeof(Int32) )
+								else if (paramType == typeof(Int32))
 								{
+									EditorGUI.BeginChangeCheck();
 									var val  	= EditorGUILayout.IntField  ( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0 : Int32.Parse( paramsProp.stringValue ) ).ToString( );
 									
-									if( EditorGUI.EndChangeCheck ( ) )
+									if (EditorGUI.EndChangeCheck())
 										paramsProp.stringValue = val;
 								}
 								
-								else if( paramType == typeof(GameObject) || paramType == typeof(BindableDataStore) )
+								else if (paramType == typeof(GameObject))
 								{
 									EditorGUILayout.HelpBox( $"Method arameter '{@params[0].ParameterType.Name} {@params[0].Name}' is automatically provided from this GO", MessageType.Info );
 									paramsProp.stringValue = "";
