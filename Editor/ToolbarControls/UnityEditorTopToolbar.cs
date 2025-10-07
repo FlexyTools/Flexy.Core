@@ -27,6 +27,7 @@ namespace Flexy.Core.Editor.ToolbarControls
 				EPlace.Left		=> LeftPocket_Left,
 				EPlace.Center	=> LeftPocket_Center,
 				EPlace.Right	=> LeftPocket_Right,
+				_ => LeftPocket_Center
 			} ).Add( e );
 		}
 		public static void AddVisualElementToRightPocket	( String name, VisualElement e, EPlace place )
@@ -37,6 +38,7 @@ namespace Flexy.Core.Editor.ToolbarControls
 				EPlace.Left		=> RightPocket_Left,
 				EPlace.Center	=> RightPocket_Center,
 				EPlace.Right	=> RightPocket_Right,
+				_ => RightPocket_Center
 			} ).Add( e );
 		}
 

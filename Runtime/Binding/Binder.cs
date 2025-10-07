@@ -268,11 +268,11 @@ namespace Flexy.Core.Binding
 				
 					if( paramType == typeof(BindableDataStore) )
 					{
-						return new OneParamBinder<BindableDataStore,TResult>( gameObject.GetComponent<BindableDataStore>(), (Func<BindableDataStore, TResult>)Delegate.CreateDelegate( typeof(Func<BindableDataStore, TResult>), target, method ) ).GetValue;
+						return new OneParamBind<BindableDataStore,TResult>( gameObject.GetComponent<BindableDataStore>(), (Func<BindableDataStore, TResult>)Delegate.CreateDelegate( typeof(Func<BindableDataStore, TResult>), target, method ) ).GetValue;
 					}
 					if( paramType == typeof(GameObject) )
 					{
-						return new OneParamBinder<GameObject,TResult>( gameObject, (Func<GameObject, TResult>)Delegate.CreateDelegate( typeof(Func<GameObject, TResult>), target, method ) ).GetValue;
+						return new OneParamBind<GameObject,TResult>( gameObject, (Func<GameObject, TResult>)Delegate.CreateDelegate( typeof(Func<GameObject, TResult>), target, method ) ).GetValue;
 					}
 					
 					if ( paramType.IsEnum )
@@ -298,7 +298,7 @@ namespace Flexy.Core.Binding
 		private					Func<TResult>	CreateGetDelegate<TParam,TResult>	( Object target, MethodInfo method, TParam param )		
 		{
 			if ( !method.ReturnType.IsEnum )
-				return new OneParamBinder<TParam,TResult>( param, (Func<TParam, TResult>)Delegate.CreateDelegate( typeof(Func<TParam, TResult>), target, method ) ).GetValue;
+				return new OneParamBind<TParam,TResult>( param, (Func<TParam, TResult>)Delegate.CreateDelegate( typeof(Func<TParam, TResult>), target, method ) ).GetValue;
 		
 			var enumType  = method.ReturnType;
 			var intType   = Enum.GetUnderlyingType( enumType );
@@ -360,33 +360,33 @@ namespace Flexy.Core.Binding
 				
 				if (paramType == typeof(String))
 				{
-					return new OneParamSetterBinder<String, TArg>( parameters, (Action<String, TArg>)Delegate.CreateDelegate( typeof(Action<String, TArg>), target, method ) ).SetValue;
+					return new OneParamSetterBind<String, TArg>( parameters, (Action<String, TArg>)Delegate.CreateDelegate( typeof(Action<String, TArg>), target, method ) ).SetValue;
 				}
 				if (paramType == typeof(Int32))
 				{
 					var result = 0;
 					if( Int32.TryParse ( parameters, out result ) )
-						return new OneParamSetterBinder<Int32,TArg>( result, (Action<Int32, TArg>)Delegate.CreateDelegate( typeof(Action<Int32, TArg>), target, method ) ).SetValue;
+						return new OneParamSetterBind<Int32,TArg>( result, (Action<Int32, TArg>)Delegate.CreateDelegate( typeof(Action<Int32, TArg>), target, method ) ).SetValue;
 				}
 				if (paramType == typeof(Single))
 				{
 					var result = 0.0f;
 					if( Single.TryParse ( parameters, out result ) )
-						return new OneParamSetterBinder<Single,TArg>( result, (Action<Single, TArg>)Delegate.CreateDelegate( typeof(Action<Single, TArg>), target, method ) ).SetValue;
+						return new OneParamSetterBind<Single,TArg>( result, (Action<Single, TArg>)Delegate.CreateDelegate( typeof(Action<Single, TArg>), target, method ) ).SetValue;
 				}
 				if (paramType == typeof(Boolean))
 				{
 					var result = false;
 					if( Boolean.TryParse ( parameters, out result ) )
-						return new OneParamSetterBinder<Boolean,TArg>( result, (Action<Boolean, TArg>)Delegate.CreateDelegate( typeof(Action<Boolean, TArg>), target, method ) ).SetValue;
+						return new OneParamSetterBind<Boolean,TArg>( result, (Action<Boolean, TArg>)Delegate.CreateDelegate( typeof(Action<Boolean, TArg>), target, method ) ).SetValue;
 				}
 				if (paramType == typeof(BindableDataStore))
 				{
-					return new OneParamSetterBinder<BindableDataStore,TArg>( gameObject.GetComponent<BindableDataStore>(), (Action<BindableDataStore, TArg>)Delegate.CreateDelegate( typeof(Action<BindableDataStore, TArg>), target, method ) ).SetValue;
+					return new OneParamSetterBind<BindableDataStore,TArg>( gameObject.GetComponent<BindableDataStore>(), (Action<BindableDataStore, TArg>)Delegate.CreateDelegate( typeof(Action<BindableDataStore, TArg>), target, method ) ).SetValue;
 				}
 				if (paramType == typeof(GameObject))
 				{
-					return new OneParamSetterBinder<GameObject,TArg>( gameObject, (Action<GameObject, TArg>)Delegate.CreateDelegate( typeof(Action<GameObject, TArg>), target, method ) ).SetValue;
+					return new OneParamSetterBind<GameObject,TArg>( gameObject, (Action<GameObject, TArg>)Delegate.CreateDelegate( typeof(Action<GameObject, TArg>), target, method ) ).SetValue;
 				}
 			}
 
@@ -418,22 +418,22 @@ namespace Flexy.Core.Binding
 			public	String		Params;
 		}
 		
-		internal record		ZeroParamBinderWithConvert<TResult, TResult2>( Func<TResult> Function, Func<TResult, TResult2> Converter )		
+		internal record		ZeroParamBindWithConvert<TResult, TResult2>( Func<TResult> Func, Func<TResult, TResult2> Convert )		
 		{
-			public		TResult2	GetValue	( ) => Converter(Function( ));
+			public		TResult2	GetValue	( ) => Convert(Func());
 		}
 		
-		public record		OneParamBinder<TArg,TResult>( TArg Param, Func<TArg, TResult> Function )		
+		internal record		OneParamBind<TArg,TResult>( TArg Param, Func<TArg, TResult> Func )		
 		{
-			public		TResult		GetValue	( ) => Function( Param );
+			public		TResult		GetValue	( ) => Func( Param );
 		}
 		
-		internal record		OneParamBinderWithConvert<TArg,TResult, TResult2>( TArg Param, Func<TArg, TResult> Function, Func<TResult, TResult2> Converter )		
+		internal record		OneParamBindWithConvert<TArg,TResult, TResult2>( TArg Param, Func<TArg, TResult> Func, Func<TResult, TResult2> Convert )		
 		{
-			public		TResult2	GetValue	( ) => Converter(Function( Param ));
+			public		TResult2	GetValue	( ) => Convert(Func( Param ));
 		}
 		
-		private record		OneParamSetterBinder<TArg, TInputArg>( TArg Param, Action<TArg, TInputArg>? Action )		
+		internal record		OneParamSetterBind<TArg, TInputArg>( TArg Param, Action<TArg, TInputArg>? Action )		
 		{
 			public		void		SetValue	( TInputArg param ) => Action?.Invoke( Param, param );
 		}		

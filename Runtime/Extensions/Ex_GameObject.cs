@@ -2,7 +2,7 @@ namespace Flexy.Core.Extensions;
 
 public static class Ex_GameObject
 {
-	public static	void	ClearEditorDirty	( this UnityEngine.GameObject go )
+	public static	void	ClearEditorDirty	( this GameObject go )
 	{
 		#if UNITY_EDITOR
 		

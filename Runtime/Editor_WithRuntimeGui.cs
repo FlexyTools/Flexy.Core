@@ -11,7 +11,7 @@ namespace Flexy.Core
     {
 	    protected	VisualElement	_root = null!;
 	    
-	    protected virtual	Boolean	DrawDefaultInspector => true;
+	    protected virtual	Boolean	DoDrawDefaultInspector => true;
 	    
         public override VisualElement CreateInspectorGUI( )		
         {
@@ -24,7 +24,7 @@ namespace Flexy.Core
         
         protected			void	FillRoot			( )		
         {
-	        if( DrawDefaultInspector )
+	        if( DoDrawDefaultInspector )
 		        InspectorElement.FillDefaultInspector( _root, serializedObject , this );
 		
 	        var ac = (Action)OnInspectorGUI;
