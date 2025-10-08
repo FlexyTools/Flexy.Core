@@ -13,36 +13,28 @@ namespace Flexy.Core.Editor.Binding
 	[CustomPropertyDrawer(typeof(Binder.BindSource), true)]
 	public class BindSourcePropertyDrawer : PropertyDrawer
 	{
-		private		List<Component>		_properties 		= null!;
+		private		List<Component>?	_properties 		= null;
 		private		List<String>		_propertyNames 		= null!;
 		private		String[]			_propertyNamesNice 	= null!;
-		private		Type				_bindType 			= null!;
-
-		public override Single	GetPropertyHeight	( SerializedProperty property, GUIContent label )
+		private		Type?				_bindType 			= null;
+		
+		public override void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )	
 		{
-			return 0;
-		}
-		public override void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )
-		{
-			if( _bindType == null )
+			if (_bindType == null)
 			{
-				var attrs			= fieldInfo.GetCustomAttributes ( typeof(BindToAttribute), true );
+				var attr	= fieldInfo.GetCustomAttribute<BindToAttribute>(true);
 				
-				if( attrs != null && attrs.Length > 0 )
+				if (attr != null)
 				{
-					var attr = (BindToAttribute)attrs[0];
 					if( attr.BindToType == typeof(void) )
-						attrs = property.serializedObject.targetObject.GetType( ).GetCustomAttributes ( typeof(BindToAttribute), true );
+						attr = property.serializedObject.targetObject.GetType( ).GetCustomAttribute<BindToAttribute>(true);
 			
-					if( attrs != null && attrs.Length > 0 )
-					{
-						attr			= (BindToAttribute)attrs[0];
+					if (attr != null)
 						_bindType		= attr.BindToType;
-					}
 				}
 			}
 			
-			if( _bindType == null )
+			if (_bindType == null)
 			{
 				GUI.color = Color.red;
 				GUILayout.Label( "Property " + property.displayName + " has no BindToAttribute! Add one to go on." );
@@ -50,28 +42,102 @@ namespace Flexy.Core.Editor.Binding
 				return;
 			}
 
-			//property.serializedObject.Update( );
+			if (_properties == null || _properties.Count == 0)
+				UpdateMethods( property.FindPropertyRelative( "Component" ), _bindType, out _properties, out _propertyNames, out _propertyNamesNice );
 
-			if( _properties == null || _properties.Count == 0 )
-				UpdateMethods( property );
-
-			
-			DrawProp( property );
-			//property.serializedObject.ApplyModifiedProperties( );
+			DrawProp	( property, _bindType, out _, ref _properties, ref _propertyNames, ref _propertyNamesNice );
+		}
+		public override Single	GetPropertyHeight	( SerializedProperty property, GUIContent label )					
+		{
+			return 0;
 		}
 		
+		public static void	UpdateMethods	( SerializedProperty componentProp, Type bindType, out List<Component> properties, out List<String> propertyNames, out String[] propertyNamesNice )					
+		{
+			if (componentProp.propertyType != SerializedPropertyType.ObjectReference)
+			{ 
+				Debug.Log		( $"[BindSourcePropertyDrawer] - UpdateMethods: Unsupported Type: {componentProp.propertyType}" );
+
+				properties			= new List<Component>();
+				propertyNames		= new List<String>();
+				propertyNamesNice	= Array.Empty<String>();
+
+				return;
+			}
+
+			if (componentProp.objectReferenceValue == null)
+			{
+				properties			= new List<Component>();
+				propertyNames		= new List<String>();
+				propertyNamesNice	= Array.Empty<String>();
+			}
+			else
+			{
+				var obj				= ((Component)componentProp.objectReferenceValue).gameObject;
+				properties			= new List<Component>( );
+				propertyNames		= new List<String>( );
+				var nicedNames		= new List<String>( );
+
+				foreach (var component in obj.GetComponents<MonoBehaviour>())
+				{
+					if (!component)
+						continue;
+					
+					var type = component.GetType();
+					do
+					{
+						foreach (var propertyInfo in type.GetProperties( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ))
+						{
+							var attrs = propertyInfo.GetCustomAttributes( typeof(BindableAttribute), true );
+
+							if (attrs.Length == 0)
+								continue;
+
+							if (!bindType.IsAssignableFrom( propertyInfo.PropertyType ))
+								continue;
+
+							properties.Add		( component );
+							propertyNames.Add	( propertyInfo.Name );
+							nicedNames.Add		( ObjectNames.NicifyVariableName( component.GetType( ).Name + " - " + propertyInfo.Name ) );
+						}
+						type = type.BaseType;
+					}
+					while (type != typeof(Object));
+
+					type = component.GetType( );
+					do
+					{
+						foreach( var methodInfo in component.GetType( ).GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).Where( methodInfo => bindType.IsAssignableFrom( methodInfo.ReturnType ) && methodInfo.GetCustomAttributes( typeof(BindableAttribute), true ).Length > 0 ) )
+						{
+							properties.Add		( component );
+							propertyNames.Add	( methodInfo.Name );
+
+							var @params = methodInfo.GetParameters ();
+							var optionString = $"{component.GetType( ).Name} - {methodInfo.Name} ({(@params.Length == 0 ? "" : @params[0].Name)})";
+							nicedNames.Add( ObjectNames.NicifyVariableName( optionString ) );
+						}
+						
+						type = type.BaseType;
+					}
+					while (type != null && type != typeof(Object));
+				}
+
+				propertyNamesNice = nicedNames.ToArray();
+			}
+		}
 		public static void	DrawProp		( SerializedProperty property, Type bindType, out Type memberType, ref List<Component> properties, ref List<String> propertyNames, ref String[] propertyNamesNice )	
 		{
-			GUILayout.BeginVertical( property.displayName, GUI.skin.window, GUILayout.Height( 20 ) );
+			var componentProp				= property.FindPropertyRelative( "Component" );
+			var memberNameProp				= property.FindPropertyRelative( "MemberName" );
+			var paramsProp					= property.FindPropertyRelative( "Params" );
+		
+			GUILayout.BeginHorizontal();
 			{
 				memberType = typeof(void);
 				
-				var componentProp				= property.FindPropertyRelative( "Component" );
-				var memberNameProp				= property.FindPropertyRelative( "MemberName" );
-				var paramsProp					= property.FindPropertyRelative( "Params" );
-      
+				GUILayout.Label( property.displayName );
 				EditorGUI.BeginChangeCheck		( );
-				EditorGUILayout.PropertyField	( componentProp, false );
+				EditorGUILayout.PropertyField	( componentProp, GUIContent.none );
 
 				var targetChanged				= false;
 
@@ -84,223 +150,142 @@ namespace Flexy.Core.Editor.Binding
 				if( propertyNames.Count == 0 )
 				{
 					GUI.color						= Color.red;
-					EditorGUILayout.LabelField		( componentProp.objectReferenceValue != null ? "Target Has No Bindable Properties" : "Choose Target First!!!" );
+					EditorGUILayout.LabelField		( componentProp.objectReferenceValue != null ? "Source Has No Bindable Properties" : "Choose Source First!!!" );
 					GUI.color						= Color.white;
-				}
-				else
-				{
-					var index		= propertyNames.IndexOf( memberNameProp.stringValue );
-
-					if( index == -1 )
-					{
-						index								= 0;
-						memberNameProp.stringValue			= propertyNames[index];
-						componentProp.objectReferenceValue	= properties[index];
-					}
-					else if( targetChanged )
-					{
-						componentProp.objectReferenceValue	= properties[index];
-					}
-
-					EditorGUI.BeginChangeCheck		( );
-					index							= EditorGUILayout.Popup	( "Property", index, propertyNamesNice );
-
-					if( EditorGUI.EndChangeCheck ( ) )
-					{
-						Undo.RecordObjects						( property.serializedObject.targetObjects, "Target Property Chaged" );
-						memberNameProp.stringValue				= propertyNames[index];
-						componentProp.objectReferenceValue		= properties[index];
-						paramsProp.stringValue					= "";
-					}
-
-					var bindTargetType = componentProp.objectReferenceValue.GetType ( );
-					var memberName = memberNameProp.stringValue;
-
-					while( bindTargetType != typeof(Object) )
-					{
-						var method = bindTargetType.GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).FirstOrDefault( methodInfo => methodInfo.Name == memberName && bindType.IsAssignableFrom( methodInfo.ReturnType ) );
-						if( method != null )
-						{
-							var @params = method.GetParameters();
-							if( @params.Length == 1 )
-							{
-								var desc = method.GetCustomAttribute<BindableAttribute>( true );
-								if( desc != null )
-									EditorGUILayout.HelpBox( desc.Description, desc.IsWarning ? MessageType.Warning : MessageType.Info );
-
-								var paramType = @params[0].ParameterType;
-								
-								if (paramType == typeof(String))
-								{
-									EditorGUI.BeginChangeCheck();
-									var val  	= EditorGUILayout.TextField ( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue );
-									
-									if (EditorGUI.EndChangeCheck())
-										paramsProp.stringValue = val;
-								}
-								
-								else if (paramType == typeof(Single))
-								{
-									EditorGUI.BeginChangeCheck();
-									var val  	= EditorGUILayout.FloatField( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0.0f : Single.Parse( paramsProp.stringValue ) ).ToString( );
-									
-									if (EditorGUI.EndChangeCheck())
-										paramsProp.stringValue = val;
-								}
-						
-								else if (paramType == typeof(Boolean))
-								{
-									EditorGUI.BeginChangeCheck();
-									var val  	= EditorGUILayout.Toggle( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue != "" && Boolean.Parse( paramsProp.stringValue ) ).ToString( );
-									
-									if (EditorGUI.EndChangeCheck())
-										paramsProp.stringValue = val;
-								}
-
-								else if (paramType.IsEnum)
-								{
-									EditorGUI.BeginChangeCheck();
-									var type	= paramType;
-									var val  	= Convert.ToInt32( EditorGUILayout.EnumPopup( ObjectNames.NicifyVariableName( type.Name ), (Enum)Enum.Parse( type, String.IsNullOrEmpty( paramsProp.stringValue ) ? Enum.GetNames(type)[0] : paramsProp.stringValue ) ) ).ToString( );
-									
-									if (EditorGUI.EndChangeCheck())
-										paramsProp.stringValue = val;
-								}
-
-								else if (paramType == typeof(Int32))
-								{
-									EditorGUI.BeginChangeCheck();
-									var val  	= EditorGUILayout.IntField  ( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0 : Int32.Parse( paramsProp.stringValue ) ).ToString( );
-									
-									if (EditorGUI.EndChangeCheck())
-										paramsProp.stringValue = val;
-								}
-								
-								else if (paramType == typeof(GameObject))
-								{
-									EditorGUILayout.HelpBox( $"Method arameter '{@params[0].ParameterType.Name} {@params[0].Name}' is automatically provided from this GO", MessageType.Info );
-									paramsProp.stringValue = "";
-								}
-
-								else
-								{
-									EditorGUILayout.HelpBox( "Method arameter type '"+ @params[0].ParameterType +"' is unsupported", MessageType.Error );
-									paramsProp.stringValue = "";
-								}
-							}
-							else
-							{
-								EditorGUILayout.HelpBox( "Methods with more than 'ONE' parameter is unsupported", MessageType.Error );
-								paramsProp.stringValue = "";
-							}
-
-							memberType = method.ReturnType;
-							
-							break;
-						}
 					
-						var propertyInfo = bindTargetType.GetProperty ( memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic );
-						if( propertyInfo != null )
-						{
-							paramsProp.stringValue = "";
+					GUILayout.EndHorizontal();
+					return;
+				}
 
-							memberType = propertyInfo.PropertyType;
+				var index		= propertyNames.IndexOf( memberNameProp.stringValue );
 
-							break;
-						}
+				if( index == -1 )
+				{
+					index								= 0;
+					memberNameProp.stringValue			= propertyNames[index];
+					componentProp.objectReferenceValue	= properties[index];
+				}
+				else if( targetChanged )
+				{
+					componentProp.objectReferenceValue	= properties[index];
+				}
 
-						bindTargetType = bindTargetType.BaseType;
-					}
+				EditorGUI.BeginChangeCheck		( );
+				index							= EditorGUILayout.Popup	( index, propertyNamesNice );
+
+				if( EditorGUI.EndChangeCheck ( ) )
+				{
+					Undo.RecordObjects						( property.serializedObject.targetObjects, "Target Property Changed" );
+					memberNameProp.stringValue				= propertyNames[index];
+					componentProp.objectReferenceValue		= properties[index];
+					paramsProp.stringValue					= "";
 				}
 			}
-			GUILayout.EndVertical( );
-		}
-		public static void	UpdateMethods	( SerializedProperty componentProp, Type bindType, out List<Component> properties, out List<String> propertyNames, out String[] propertyNamesNice )					
-		{
-			if( componentProp.propertyType != SerializedPropertyType.ObjectReference )
-			{ 
-				Debug.Log		( $"[BindSourcePropertyDrawer] - UpdateMethods: Unsupported Type: {componentProp.propertyType}" );
+			GUILayout.EndHorizontal();
 
-				properties			= new List<Component>	( );
-				propertyNames		= new List<String>		( );
-				propertyNamesNice	= new String[0];
+			var source		= componentProp.objectReferenceValue;
+			var memberName	= memberNameProp.stringValue;
 
+			if (source == null || String.IsNullOrWhiteSpace(memberName))
 				return;
-			}
 
-			if( componentProp.objectReferenceValue == null )
+			var bindTargetType = source.GetType();
+			
+			while( bindTargetType != typeof(Object) )
 			{
-				properties			= new List<Component>	( );
-				propertyNames		= new List<String>		( );
-				propertyNamesNice	= new String[0];
-			}
-			else
-			{
-				var obj				= ((Component)componentProp.objectReferenceValue).gameObject;
-				properties			= new List<Component>( );
-				propertyNames		= new List<String>( );
-				var nicedNames		= new List<String>( );
-
-				foreach ( var component in obj.GetComponents<MonoBehaviour>( ) )
+				var method = bindTargetType.GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).FirstOrDefault( methodInfo => methodInfo.Name == memberName && bindType.IsAssignableFrom( methodInfo.ReturnType ) );
+				if( method != null )
 				{
-					if( component == null )
-						continue;
-					
-					var type = component.GetType( );
-					do
+					var @params = method.GetParameters();
+					if( @params.Length == 1 )
 					{
-						foreach( var propertyInfo in type.GetProperties( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ) )
+						var attr = method.GetCustomAttribute<BindableAttribute>( true );
+						if (!String.IsNullOrWhiteSpace(attr.Description))
+							EditorGUILayout.HelpBox( attr.Description, attr.IsWarning ? MessageType.Warning : MessageType.Info );
+
+						var paramType = @params[0].ParameterType;
+						
+						if (paramType == typeof(String))
 						{
-							var attrs = propertyInfo.GetCustomAttributes( typeof(BindableAttribute), true );
-
-							if( attrs.Length == 0 )
-								continue;
-
-							if( !bindType.IsAssignableFrom( propertyInfo.PropertyType ) )
-								continue;
-
-							properties.Add		( component );
-							propertyNames.Add	( propertyInfo.Name );
-							nicedNames.Add		( ObjectNames.NicifyVariableName( component.GetType( ).Name + " - " + propertyInfo.Name ) );
-						}
-						type = type.BaseType;
-					}
-					while( type != typeof(Object) );
-
-					type = component.GetType( );
-					do
-					{
-						foreach( var methodInfo in component.GetType( ).GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).Where( methodInfo => bindType.IsAssignableFrom( methodInfo.ReturnType ) && methodInfo.GetCustomAttributes( typeof(BindableAttribute), true ).Length > 0 ) )
-						{
-							properties.Add		( component );
-							propertyNames.Add	( methodInfo.Name );
-
-							var @params = methodInfo.GetParameters ( );
-							if( @params.Length == 0 )
-								nicedNames.Add		( ObjectNames.NicifyVariableName( component.GetType( ).Name + " - " + methodInfo.Name + "( )" ) );
-							else
-								nicedNames.Add		( ObjectNames.NicifyVariableName( component.GetType( ).Name + " - " + methodInfo.Name + "( " + @params[0].Name + " )" ) );
+							EditorGUI.BeginChangeCheck();
+							var val  	= EditorGUILayout.TextField ( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue );
+							
+							if (EditorGUI.EndChangeCheck())
+								paramsProp.stringValue = val;
 						}
 						
-						type = type.BaseType;
+						else if (paramType == typeof(Single))
+						{
+							EditorGUI.BeginChangeCheck();
+							var val  	= EditorGUILayout.FloatField( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0.0f : Single.Parse( paramsProp.stringValue ) ).ToString( );
+							
+							if (EditorGUI.EndChangeCheck())
+								paramsProp.stringValue = val;
+						}
+				
+						else if (paramType == typeof(Boolean))
+						{
+							EditorGUI.BeginChangeCheck();
+							var val  	= EditorGUILayout.Toggle( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue != "" && Boolean.Parse( paramsProp.stringValue ) ).ToString( );
+							
+							if (EditorGUI.EndChangeCheck())
+								paramsProp.stringValue = val;
+						}
+
+						else if (paramType.IsEnum)
+						{
+							EditorGUI.BeginChangeCheck();
+							var type	= paramType;
+							var val  	= Convert.ToInt32( EditorGUILayout.EnumPopup( ObjectNames.NicifyVariableName( type.Name ), (Enum)Enum.Parse( type, String.IsNullOrEmpty( paramsProp.stringValue ) ? Enum.GetNames(type)[0] : paramsProp.stringValue ) ) ).ToString( );
+							
+							if (EditorGUI.EndChangeCheck())
+								paramsProp.stringValue = val;
+						}
+
+						else if (paramType == typeof(Int32))
+						{
+							EditorGUI.BeginChangeCheck();
+							var val  	= EditorGUILayout.IntField  ( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0 : Int32.Parse( paramsProp.stringValue ) ).ToString( );
+							
+							if (EditorGUI.EndChangeCheck())
+								paramsProp.stringValue = val;
+						}
+						
+						else if (paramType == typeof(GameObject))
+						{
+							EditorGUILayout.HelpBox( $"Method arameter '{@params[0].ParameterType.Name} {@params[0].Name}' is automatically provided from this GO", MessageType.Info );
+							paramsProp.stringValue = "";
+						}
+
+						else
+						{
+							EditorGUILayout.HelpBox( "Method arameter type '"+ @params[0].ParameterType +"' is unsupported", MessageType.Error );
+							paramsProp.stringValue = "";
+						}
 					}
-					while( type != typeof(Object) );
+					else
+					{
+						EditorGUILayout.HelpBox( "Methods with more than 'ONE' parameter is unsupported", MessageType.Error );
+						paramsProp.stringValue = "";
+					}
+
+					memberType = method.ReturnType;
+					
+					break;
+				}
+			
+				var propertyInfo = bindTargetType.GetProperty ( memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic );
+				if( propertyInfo != null )
+				{
+					paramsProp.stringValue = "";
+
+					memberType = propertyInfo.PropertyType;
+
+					break;
 				}
 
-				propertyNamesNice = nicedNames.ToArray( );
+				bindTargetType = bindTargetType.BaseType;
 			}
-		}
-		
-		private void	DrawProp		( SerializedProperty property )	
-		{
-			Type memberType;
-			DrawProp	( property, _bindType, out memberType, ref _properties, ref _propertyNames, ref _propertyNamesNice );
-		}
-		private	void	UpdateMethods	( SerializedProperty property )	
-		{
-			var componentProp	= property.FindPropertyRelative( "Component" );
-
-			UpdateMethods( componentProp, _bindType, out _properties, out _propertyNames, out _propertyNamesNice );
 		}
 	}
 }
