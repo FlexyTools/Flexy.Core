@@ -5,12 +5,12 @@ namespace Flexy.Core.Binding
 	public abstract class Binder : MonoBehaviour
 	{
 		[BindTo(typeof(void))]
-		[SerializeField]	private	BindSource _source;
+		[SerializeField]	BindSource	_source;
 
-		private Boolean _isInitialized;
+		private Boolean		_isInitialized;
 
-		public					Component		Component		=> _source.Component;
-		public					String			MemberName		=> _source.MemberName;
+		public	Component	Component	=> _source.Component;
+		public	String		MemberName	=> _source.MemberName;
 
 		[ContextMenu ("Rebind")]
 		public                  void			Rebind			( )					
