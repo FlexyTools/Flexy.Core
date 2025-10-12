@@ -36,8 +36,21 @@ public static class EditorUtilities
 		return Selection.activeObject != null && !String.IsNullOrEmpty( AssetDatabase.GetAssetPath( Selection.activeObject ) );
 	}
 	
-	[MenuItem( "Assets/Reserialize Assets", priority = 40 )]
-	private	static	void	ReserializeAssets	( )		
+	[MenuItem( "Assets/Reserialize All Assets", priority = 40 )]
+	private	static	void	ReserializeAllAssets		( )		
+	{
+		try
+		{
+			AssetDatabase.StartAssetEditing		();
+			AssetDatabase.ForceReserializeAssets();
+		}
+		finally
+		{
+			AssetDatabase.StopAssetEditing		();
+		}
+	}
+	[MenuItem( "Assets/Reserialize Selected Assets", priority = 41 )]
+	private	static	void	ReserializeSelectedAssets	( )		
 	{
 		var path	= AssetDatabase.GetAssetPath(Selection.activeObject);
 		var paths	= new List<String>();

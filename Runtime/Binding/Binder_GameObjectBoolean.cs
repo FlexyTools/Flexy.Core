@@ -1,6 +1,7 @@
 ﻿namespace Flexy.Core.Binding
 {
 	[BindTo(typeof(Boolean))]
+	[DefaultExecutionOrder(-100)]
 	public class Binder_GameObjectBoolean : Binder
 	{
 		[SerializeField]	Boolean			_disableObjectsOnAwake;
@@ -9,7 +10,7 @@
 
 	    private				Func<Boolean>	_getter = null!;
 
-	    private				void	Awake		( )					
+	    private				void	Awake		( )		
 	    {
 		    if( _disableObjectsOnAwake )
 		    {
@@ -19,8 +20,7 @@
 
 		    Init(ref _getter);
 	    }
-
-		protected override	void	OnDestroy	( )
+		protected override	void	OnDestroy	( )		
 		{
 			if( _disableObjectsOnAwake )
 		    {
@@ -30,8 +30,7 @@
 			
 			base.OnDestroy( );
 		}
-
-		protected override void OnDisable()
+		protected override	void	OnDisable	( )		
 		{
 			if( _disableObjectsOnAwake )
 		    {

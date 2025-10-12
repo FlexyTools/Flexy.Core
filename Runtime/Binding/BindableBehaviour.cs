@@ -39,20 +39,20 @@ namespace Flexy.Core.Binding
 			_isBindUnready			= true;
 		}
 
-		public	virtual void		RebindAll				    ( params String[] excludeNames )	
+		public		virtual void	RebindAll				    ( params String[] excludeNames )	
 		{
 			if (_isBindUnready)
 				return;
 			
 			DoRebindProperty	( "*", excludeNames );
 		}
-		protected 	void 			RebindProperty				( params String[] names )			
+		public 		void 			RebindProperty				( params String[] names )			
 		{
 			foreach ( var n in names )
 				DoRebindProperty( n );
 			
 		}
-		protected 	void 			RebindProperty				( String name )						
+		public 		void 			RebindProperty				( String name )						
 		{
 			DoRebindProperty( name );
 		}
@@ -179,6 +179,6 @@ namespace Flexy.Core.Binding
 	
 	#if UNITY_EDITOR
 	[UnityEditor.CustomEditor( typeof(BindableBehaviour), true), UnityEditor.CanEditMultipleObjects]
-	public class Editor : Editor_WithRuntimeGui{ } 
+	public class BindableBehaviourEditor : Editor_WithRuntimeGui{ } 
 	#endif
 }

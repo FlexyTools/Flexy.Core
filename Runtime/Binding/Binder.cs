@@ -30,18 +30,17 @@ namespace Flexy.Core.Binding
 
 		protected	virtual		void			OnEnable		( )					
 		{
-			var target2 = _source.Component as IBindersNotifier;
-			if( target2 != null )
+			if (_source.Component is IBindersNotifier notifier)
 			{
-				target2.AttachBinder( this );
+				notifier.AttachBinder( this );
 
-				if( target2.ReadyForBind )
-					SafeBind(  );
+				if (notifier.ReadyForBind)
+					SafeBind();
 
 				return;
 			}
 
-			SafeBind (  );
+			SafeBind ();
 		}
 		protected	virtual		void			OnDisable		( )					
 		{
@@ -58,28 +57,47 @@ namespace Flexy.Core.Binding
 
 		protected				void			Init<TArg>		( ref Action<TArg> action,	Boolean requereSetter = true )	
 		{
-			if( !_source.Component && (Application.isEditor || Debug.isDebugBuild) )
-				Debug.LogError		( $"Binder {GetType( ).Name} on game object {transform.name} has not Source set", this  );
-
 			Init( ref action, ref _source, requereSetter );
 		}
 		protected				void			Init<TResult>	( ref Func<TResult> func,	Boolean requireGetter = true )	
 		{
-			if( !_source.Component && (Application.isEditor || Debug.isDebugBuild) )
-				Debug.LogError		( $"Binder {GetType( ).Name} on game object {transform.name} has not Source set", this  );
-
 			Init	( ref func, ref _source, requireGetter );
 		}
 	
 		protected				void			Init<TArg>		( ref Action<TArg> action,	ref BindSource bindSource, Boolean requireSetter = true )		
 		{
+			if (!bindSource.Component)
+			{
+				if (Application.isEditor || Debug.isDebugBuild)
+					Debug.LogError	($"Binder {GetType( ).Name} on game object {transform.name} has not Source set", this);
+					
+				return;
+			}
+		
 			try
 			{
-				var type = bindSource.Component.GetType();
+				Object? objToBindTo	= bindSource.Component;
+				var type			= objToBindTo.GetType();
+				var memberName		= bindSource.MemberName; 
+                
+				if (memberName.Contains('.'))
+				{
+					var names	= memberName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+					memberName	= names[0];
+	                
+					for (var i = 0; i < names.Length-1; i++)
+					{
+						var prop = type.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+				        
+						objToBindTo = prop.GetValue(objToBindTo);
+						type		= objToBindTo.GetType();
+						memberName	= names[i+1];
+					}
+				}
 
 				do
 				{
-					var prop = type.GetProperty( bindSource.MemberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+					var prop = type.GetProperty( memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
 					if (prop != null)
 					{
@@ -87,18 +105,17 @@ namespace Flexy.Core.Binding
 
 						if (propSetter != null)
 						{
-							action = (Action<TArg>)Delegate.CreateDelegate(typeof(Action<TArg>), bindSource.Component, propSetter);
+							action = (Action<TArg>)Delegate.CreateDelegate(typeof(Action<TArg>), objToBindTo, propSetter);
 							return;
 						}
 					}
 
 					foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
 					{
-						if (method.Name != bindSource.MemberName || method.GetParameters(  ).Length < 2 || method.GetCustomAttributes(typeof(BindableAttribute), true).Length == 0)
+						if (method.Name != memberName || method.GetParameters().Length < 2 || method.GetCustomAttribute<BindableAttribute>(true) == null)
 							continue;
 
-						action = BindSetterMethod<TArg>(bindSource.Component, method, bindSource.Params);
-
+						action = BindSetterMethod<TArg>(objToBindTo, method, bindSource.Params);
 					}
 
 					type = type.BaseType;
@@ -117,35 +134,60 @@ namespace Flexy.Core.Binding
 			//else
 			//    Debug.Log("[ABinder] - Property " + bindSource.Target.name + "->" + bindSource.Target.GetType().Name + "." + bindSource.MemberName + " has no setter. Binder set logic will not work.", this);
 		}
-		protected				void			Init<TResult>	( ref Func<TResult> action,	ref BindSource bindSource, Boolean requireGetter = true )		
+		protected				void			Init<TResult>	( ref Func<TResult> func,	ref BindSource bindSource, Boolean requireGetter = true )		
         {
+	        if (!bindSource.Component)
+	        {
+		        if (Application.isEditor || Debug.isDebugBuild)
+			        Debug.LogError	($"Binder {GetType().Name} on game object {transform.name} has not Source set", this);
+					
+		        return;
+	        }
+        
             try
             {
-                var type = bindSource.Component.GetType();
-
+	            Object? objToBindTo	= bindSource.Component;
+                var type			= objToBindTo.GetType();
+                var memberName		= bindSource.MemberName; 
+                
+                if (memberName.Contains('.'))
+                {
+	                var names	= memberName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+	                memberName	= names[0];
+	                
+	                for (var i = 0; i < names.Length-1; i++)
+	                {
+	                    var prop = type.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+				        
+				        objToBindTo = prop.GetValue(objToBindTo);
+				        type		= objToBindTo.GetType();
+				        memberName	= names[i+1];
+		            }
+                }
+                
                 do
                 {
-                    var prop = type.GetProperty( bindSource.MemberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    var prop = type.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-                    if ( prop != null )
+                    if (prop != null)
                     {
-                        if ( prop.GetCustomAttributes(typeof(BindableAttribute), true).Length > 0 )
+                        if (prop.GetCustomAttribute<BindableAttribute>(true) != null)
                         {
                             var propGetter = prop.GetGetMethod(true);
 
-							action = BindMethod<TResult>(bindSource.Component, propGetter, bindSource.Params);
+							func = BindGetterMethod<TResult>(objToBindTo, propGetter, bindSource.Params);
                             return;
                         }
                     }
 
                     foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                     {
-                        if (method.Name != bindSource.MemberName || method.GetCustomAttributes(typeof(BindableAttribute), true).Length == 0)
+                        if (method.Name != memberName || method.GetCustomAttribute<BindableAttribute>(true) == null)
                             continue;
 
-                        action = BindMethod<TResult>(bindSource.Component, method, bindSource.Params);
+                        func = BindGetterMethod<TResult>(objToBindTo, method, bindSource.Params);
 
-                        if (action != null)
+                        if (func != null)
                             return;
                     }
 
@@ -155,14 +197,14 @@ namespace Flexy.Core.Binding
             }
             catch (Exception ex)
             {
-				if( Application.isEditor || Debug.isDebugBuild ) 
+				if (Application.isEditor || Debug.isDebugBuild) 
 					Debug.LogException(ex, this);
             }
 
-            if ( requireGetter )
+            if (requireGetter)
 			{
 	            try					{ Debug.LogError("[ABinder] - Init Fail: " + bindSource.Component.name + "->" + bindSource.Component.GetType().Name + "." + bindSource.MemberName + " has no getter", this); }
-	            catch (Exception e) { if( Application.isEditor || Debug.isDebugBuild ) Debug.LogException( e ); }
+	            catch (Exception e) { if (Application.isEditor || Debug.isDebugBuild) Debug.LogException(e); }
 			}
             else
             {
@@ -172,31 +214,31 @@ namespace Flexy.Core.Binding
 
 		protected				void			ReportMissedTargetError		( Type targetType )	
 		{
-			Debug.Log( $"[{GetType().Name}] There is no target {targetType.Name}, binder path { GetHierarchyName( transform ) }, binder is disabled", this );
+			Debug.Log( $"[{GetType().Name}] There is no target {targetType.Name}, binder path { GetHierarchyName(transform) }, binder is disabled", this );
 			enabled = false;
 		}
 
 		private					void			SafeBind					( )		
 		{
-			if( !enabled )
+			if (!enabled)
 				return;
 
-			try						{ Bind(  !_isInitialized ); }
+			try						{ Bind(!_isInitialized); }
 			catch( Exception ex )
 			{
 				if( Application.isEditor || Debug.isDebugBuild )
-					Debug.LogError	( $"[ABinder]-[SafeBind] Exception <b>{ex.GetType(  ).Name}</b> at GameObject <b>{GetHierarchyName( gameObject.transform )}</b>:\r\n{ex}", this );
+					Debug.LogError	( $"[ABinder]-[SafeBind] Exception <b>{ex.GetType().Name}</b> at GameObject <b>{GetHierarchyName(gameObject.transform)}</b>:\r\n{ex}", this );
 			}
 			_isInitialized = true;
 		}
 		private					void			RebindOnPropertyChanged		( )		
 		{
-			SafeBind	(  );
+			SafeBind	();
 		}
 
-		private					Func<TResult>	BindMethod<TResult>					( Object target, MethodInfo method, String parameters )	
+		private					Func<TResult>	BindGetterMethod<TResult>			( Object target, MethodInfo method, String parameters )	
 		{
-			var @params = method.GetParameters ( );
+			var @params = method.GetParameters();
 			switch( @params.Length )
 			{
 				case 0 when !method.ReturnType.IsEnum: return  (Func<TResult>)Delegate.CreateDelegate( typeof(Func<TResult>), target, method );
@@ -204,19 +246,19 @@ namespace Flexy.Core.Binding
 				case 0:
 				{
 					var enumType  = method.ReturnType;
-					var intType   = Enum.GetUnderlyingType( enumType );
+					var intType   = Enum.GetUnderlyingType(enumType);
 					var component = target;
 
 					#if !BUG_FIXED
 					{
 						//temp workaround
-						var dType		= typeof(Func<>).MakeGenericType( enumType );
+						var dType		= typeof(Func<>).MakeGenericType(enumType);
 						var d			= Delegate.CreateDelegate( dType, component, method );
 					
 						Int32 InternalInvoke ()
 						{ 
-							var obj			= d.DynamicInvoke( );
-							var result		= Convert.ToInt32( obj );
+							var obj			= d.DynamicInvoke();
+							var result		= Convert.ToInt32(obj);
 
 							return result;
 						}

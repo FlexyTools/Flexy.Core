@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Flexy.Core.Binding;
@@ -15,7 +16,7 @@ namespace Flexy.Core.Editor.Binding
 	{
 		private		List<Component>?	_properties 		= null;
 		private		List<String>		_propertyNames 		= null!;
-		private		String[]			_propertyNamesNice 	= null!;
+		private		String[]			_propertyNamesNice	= null!;
 		private		Type?				_bindType 			= null;
 		
 		public override void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )	
@@ -52,7 +53,7 @@ namespace Flexy.Core.Editor.Binding
 			return 0;
 		}
 		
-		public static void	UpdateMethods	( SerializedProperty componentProp, Type bindType, out List<Component> properties, out List<String> propertyNames, out String[] propertyNamesNice )					
+		public static	void	UpdateMethods		( SerializedProperty componentProp, Type bindType, out List<Component> properties, out List<String> propertyNames, out String[] propertyNamesNice )					
 		{
 			if (componentProp.propertyType != SerializedPropertyType.ObjectReference)
 			{ 
@@ -76,56 +77,89 @@ namespace Flexy.Core.Editor.Binding
 				var obj				= ((Component)componentProp.objectReferenceValue).gameObject;
 				properties			= new List<Component>( );
 				propertyNames		= new List<String>( );
-				var nicedNames		= new List<String>( );
+				propertyNamesNice	= Array.Empty<String>();
+				var propertyNamesNiceList	= new List<String>();
 
 				foreach (var component in obj.GetComponents<MonoBehaviour>())
 				{
 					if (!component)
 						continue;
 					
-					var type = component.GetType();
-					do
-					{
-						foreach (var propertyInfo in type.GetProperties( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ))
-						{
-							var attrs = propertyInfo.GetCustomAttributes( typeof(BindableAttribute), true );
-
-							if (attrs.Length == 0)
-								continue;
-
-							if (!bindType.IsAssignableFrom( propertyInfo.PropertyType ))
-								continue;
-
-							properties.Add		( component );
-							propertyNames.Add	( propertyInfo.Name );
-							nicedNames.Add		( ObjectNames.NicifyVariableName( component.GetType( ).Name + " - " + propertyInfo.Name ) );
-						}
-						type = type.BaseType;
-					}
-					while (type != typeof(Object));
-
-					type = component.GetType( );
-					do
-					{
-						foreach( var methodInfo in component.GetType( ).GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).Where( methodInfo => bindType.IsAssignableFrom( methodInfo.ReturnType ) && methodInfo.GetCustomAttributes( typeof(BindableAttribute), true ).Length > 0 ) )
-						{
-							properties.Add		( component );
-							propertyNames.Add	( methodInfo.Name );
-
-							var @params = methodInfo.GetParameters ();
-							var optionString = $"{component.GetType( ).Name} - {methodInfo.Name} ({(@params.Length == 0 ? "" : @params[0].Name)})";
-							nicedNames.Add( ObjectNames.NicifyVariableName( optionString ) );
-						}
-						
-						type = type.BaseType;
-					}
-					while (type != null && type != typeof(Object));
+					GetMethodsFromObj(component, component.GetType(), "", bindType, properties, propertyNames, propertyNamesNiceList);
+					propertyNamesNice = propertyNamesNiceList.ToArray();
 				}
-
-				propertyNamesNice = nicedNames.ToArray();
 			}
 		}
-		public static void	DrawProp		( SerializedProperty property, Type bindType, out Type memberType, ref List<Component> properties, ref List<String> propertyNames, ref String[] propertyNamesNice )	
+		public static	void	GetMethodsFromObj	( Component component, Type? objType, String propPrefix, Type bindType, List<Component> properties, List<String> propertyNames, List<String> niceNames )												
+		{
+			if (objType == null || objType == typeof(Object))
+				return;
+		
+			var type = objType;
+			do
+			{
+				foreach (var propertyInfo in type!.GetProperties( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ))
+				{
+					var attr = propertyInfo.GetCustomAttribute<BindableAttribute>(true);
+
+					if (attr == null)
+						continue;
+
+					if (bindType.IsAssignableFrom( propertyInfo.PropertyType ))
+					{
+						properties.Add		( component );
+						propertyNames.Add	( propPrefix + propertyInfo.Name );
+						niceNames.Add		( ObjectNames.NicifyVariableName( objType.Name + " - " + propertyInfo.Name ) );
+					}
+					else if (propertyInfo.PropertyType.IsClass)
+					{
+						var memberName	= attr.TypeProvider;
+						var propType	= propertyInfo.PropertyType;
+						
+						if  (memberName != null)
+						{
+							var fieldInfo = type.GetField(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+							if (fieldInfo != null)
+							{
+								var o = fieldInfo.GetValue(component);
+								if (o is String typeStr) propType = Type.GetType(typeStr);
+								else if (o is Type typeObj) propType = typeObj;
+							}
+							
+							var propInfo = type.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+							if (propInfo != null)
+							{
+								var o = propInfo.GetValue(component);
+								if (o is String typeStr) propType = Type.GetType(typeStr);
+								else if (o is Type typeObj) propType = typeObj;
+							}
+						}
+						
+						GetMethodsFromObj(component, propType, propPrefix + propertyInfo.Name + ".", bindType, properties, propertyNames, niceNames);
+					}
+				}
+				type = type.BaseType;
+			}
+			while (type != typeof(Object));
+
+			type = objType;
+			do
+			{
+				foreach( var methodInfo in type.GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).Where( methodInfo => bindType.IsAssignableFrom( methodInfo.ReturnType ) && methodInfo.GetCustomAttributes( typeof(BindableAttribute), true ).Length > 0 ) )
+				{
+					properties.Add		( component );
+					propertyNames.Add	( propPrefix + methodInfo.Name );
+
+					var @params = methodInfo.GetParameters ();
+					var optionString = $"{objType.Name} - {methodInfo.Name} ({(@params.Length == 0 ? "" : @params[0].Name)})";
+					niceNames.Add( ObjectNames.NicifyVariableName( optionString ) );
+				}
+						
+				type = type.BaseType;
+			}
+			while (type != null && type != typeof(Object));
+		}
+		public static	void	DrawProp			( SerializedProperty property, Type bindType, out Type memberType, ref List<Component> properties, ref List<String> propertyNames, ref String[] propertyNamesNice )	
 		{
 			var componentProp				= property.FindPropertyRelative( "Component" );
 			var memberNameProp				= property.FindPropertyRelative( "MemberName" );
@@ -217,7 +251,7 @@ namespace Flexy.Core.Editor.Binding
 						else if (paramType == typeof(Single))
 						{
 							EditorGUI.BeginChangeCheck();
-							var val  	= EditorGUILayout.FloatField( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0.0f : Single.Parse( paramsProp.stringValue ) ).ToString( );
+							var val  	= EditorGUILayout.FloatField( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0.0f : Single.Parse( paramsProp.stringValue ) ).ToString(CultureInfo.InvariantCulture );
 							
 							if (EditorGUI.EndChangeCheck())
 								paramsProp.stringValue = val;
