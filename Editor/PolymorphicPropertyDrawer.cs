@@ -65,6 +65,12 @@ namespace Flexy.Core.Editor
 			
 			PopulateInnerProps( propsInline, propsBlock, property );
 			
+			propsBlock.Unbind();
+			propsBlock.Bind( property.serializedObject );
+			
+			propsInline.Unbind();
+			propsInline.Bind( property.serializedObject );
+			
 			if( propsBlock.hierarchy.childCount == 0 )
 				foldout.style.display = DisplayStyle.None;
 			
@@ -168,9 +174,6 @@ namespace Flexy.Core.Editor
 				else
 					propsBlock.Add( new PropertyField(copy) );
 			}
-			
-			propsBlock.Unbind();
-			propsBlock.Bind( property.serializedObject );
 		}
     }
 	

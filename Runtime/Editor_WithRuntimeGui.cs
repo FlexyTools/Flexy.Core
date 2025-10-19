@@ -15,11 +15,11 @@ namespace Flexy.Core
 	    
         public override VisualElement CreateInspectorGUI( )		
         {
-	        _root = new VisualElement{ name = "FlexyContainer:Object Editor Root Element" } ;
+			_root = new VisualElement{ name = "FlexyContainer:Object Editor Root Element" } ;
 
-	       FillRoot( );
+			FillRoot( );
 	        
-	        return _root;
+			return _root;
         }
         
         protected			void	FillRoot			( )		
@@ -37,6 +37,9 @@ namespace Flexy.Core
         
         private  			void	DrawInspectorGUI	( )		
         {
+			EditorGUIUtility.labelWidth = 0;
+	        EditorGUIUtility.fieldWidth = 0;
+	        EditorGUIUtility.hierarchyMode = true;        
 	        serializedObject.UpdateIfRequiredOrScript( );
 	        OnInspectorGUI( );
 	        serializedObject.ApplyModifiedProperties( );
