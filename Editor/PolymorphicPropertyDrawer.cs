@@ -25,57 +25,73 @@ namespace Flexy.Core.Editor
 				return new PropertyField( property );
 			
 			var attr		= (PlymorphicAttribute)attribute;
-			var root		= new VisualElement();
 			var baseType	= attr?.BaseType ?? GetType( property.managedReferenceFieldTypename );
 			
-			BuildUI(root, property, baseType, displayName);
+			var foldout = new Foldout
+			{
+				pickingMode = PickingMode.Ignore, text = displayName,
+				bindingPath = property.propertyPath
+			};
 			
-			root.TrackPropertyValue(property, _ => BuildUI(root, property, baseType, displayName));
+			var toggle = foldout.Q<Toggle>(null, Foldout.toggleUssClassName);
+			var toggleRow = toggle.hierarchy[0];
+			var checkmark = toggleRow.hierarchy[0];
+			var toggleLabel = toggleRow.hierarchy[1];
 			
-			return root;
-		}
-
-		private			void			BuildUI				( VisualElement root, SerializedProperty property, Type baseType, String displayName )
-		{
-			root.Clear();
+			toggle.style.marginTop = 0;
+			toggle.style.marginBottom = 0;
+			toggleLabel.style.display = DisplayStyle.None;
 			
-			var header		= new VisualElement { name = "Header", style = { flexDirection = FlexDirection.Row }};
-			var foldout		= new Foldout { text = " ", style = { width = 0 }};
-			var propField	= new ContainerField( displayName ){ style = { flexGrow = 1, flexShrink = 1 } };
-			var propsBlock	= new VisualElement { name = "PropsBlock", style = { marginLeft = 13}};
+			var propField	= new ContainerField( displayName ){ style = { flexGrow = 1, flexShrink = 1, overflow = Overflow.Visible, marginTop = 0, marginBottom = 0} };
+			propField.AddToClassList(ContainerField.alignedFieldUssClassName);
+			propField.style.marginLeft = 0;
+			propField.labelElement.style.alignSelf = Align.Center;
 			
-			header.Add( foldout );
-			header.Add( propField );
+			toggleRow.hierarchy.Add(propField);
 			
-			var button		= new Button		{ text = "⦿", style = { maxWidth = 20}};
+			var button		= new Button		{ text = "⦿", style = { maxWidth = 20, paddingLeft = 3, paddingRight = 3}};
 			var propsInline	= new VisualElement { name = "PropsInline", style = { flexDirection = FlexDirection.Row, flexGrow = 1 } };
 			
-			propField.AddToClassList(ContainerField.alignedFieldUssClassName);
-			propField.Add( propsInline );
-			propField.Add( new(){ style = { flexGrow = 0.01f } } );
-			propField.Add( button );
+			propField.contentContainer.Add( propsInline );
+			propField.contentContainer.Add( new(){ style = { flexGrow = 0.01f, minWidth = 2} } );
+			propField.contentContainer.Add( button );
 			
 			propField.userData		= property;
 			
-			SetFieldName( displayName, propField );
-			
-			foldout.RegisterValueChangedCallback( e => propsBlock.style.display = e.newValue ? DisplayStyle.Flex : DisplayStyle.None );
-			
 			SetupChooseItemButton( propField, button, baseType, type => SetNewInstance(type, property) );
 			
-			PopulateInnerProps( propsInline, propsBlock, property );
+			BuildUI(foldout, checkmark, propField, propsInline, property, displayName);
 			
-			propsBlock.Unbind();
-			propsBlock.Bind( property.serializedObject );
+			foldout.TrackPropertyValue(property, _ => BuildUI(foldout, checkmark, propField, propsInline, property, displayName));
 			
-			propsInline.Unbind();
-			propsInline.Bind( property.serializedObject );
+			return foldout;
+		}
+
+		private			void			BuildUI				( Foldout foldout, VisualElement checkmark, ContainerField propField, VisualElement inline, SerializedProperty property, String displayName )
+		{
+			var block = foldout.contentContainer;
+		
+			inline.Unbind();
+			block.Unbind();
+			block.Clear();
+			inline.Clear();
 			
-			if( propsBlock.hierarchy.childCount == 0 )
-				foldout.style.display = DisplayStyle.None;
+			SetFieldName( displayName, propField );
+			PopulateInnerProps( inline, block, property );
 			
-			root.Add( header );
-			root.Add( propsBlock );
+			inline.Bind( property.serializedObject );
+			block.Bind( property.serializedObject );
+			
+			if( block.hierarchy.childCount == 0 )
+			{
+				foldout.value = false;
+				checkmark.style.visibility = Visibility.Hidden; 
+			}
+			else
+			{
+				foldout.value = false;
+				checkmark.style.visibility = Visibility.Visible;
+			}
 		}
 		private			void			SetFieldName		( String displayName, ContainerField field )
 		{
