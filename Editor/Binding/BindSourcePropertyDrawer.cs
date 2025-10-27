@@ -213,6 +213,9 @@ public class BindSourcePropertyDrawer : PropertyDrawer
 			}
 			else if( targetChanged )
 			{
+				if (index == -1)
+					index = 0;
+			
 				componentProp.objectReferenceValue	= properties[index];
 			}
 		}
