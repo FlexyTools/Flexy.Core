@@ -168,19 +168,32 @@ namespace Flexy.Core.GameContexts
 					SetService( service );
 			}
 		}
-		public			T?				GetService<T>			( ) where T : class				
+		public			T				GetService<T>			( ) where T : class				
+		{
+			if( _registeredServicesDict.TryGetValue( typeof(T), out var svc ) )
+				return (T)svc;
+
+			svc = _ext?.GetService<T>();
+
+			if (svc != null)
+				return (T)svc;
+
+			if (_parent)
+				return _parent.GetService<T>();
+
+			throw new InvalidOperationException( $"Service {typeof(T).Name} not found" );
+		}
+		public			T?				GetServiceOrNull<T>		( ) where T : class				
 		{
 			if( _registeredServicesDict.TryGetValue( typeof(T), out var svc ) )
 				return svc as T;
 
-			if( _parent )
-			{
-				var result = _parent.GetService<T>( );
-				if( result != null )
-					return result;
-			}
+			svc = _ext?.GetService<T>();
 
-			return _ext?.GetService<T>();
+			if (svc != null)
+				return (T)svc;
+
+			return _parent ? _parent.GetServiceOrNull<T>() : null;
 		}
 		public			void			SetService<T>			( T service )	where T : class	
 		{
