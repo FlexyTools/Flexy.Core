@@ -74,6 +74,9 @@ namespace Flexy.Core.GameContexts
 			{
 				_parent = transform.parent == null ? GetCtx(gameObject.scene) : GetCtx(transform.parent);
 				_ext?.SetParent(_parent);
+				
+				if (_parent)
+					_parent._children.Add(this);
 			}
 
 			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {name} - Awake \t parent:{_parent}", this );
@@ -116,28 +119,20 @@ namespace Flexy.Core.GameContexts
 				DoInitializeAsyncServices	( asyncServices ).Forget( Debug.LogException );
 			}
 		}
-		protected		void			OnEnable				( )		
-		{
-			if(_parent)
-				_parent._children.Add( this );
-		}
-		protected		void			OnDisable				( )		
-		{
-			if(_parent)
-				_parent._children.Remove( this );
-		}
 		protected		void			OnDestroy				( )		
 		{
 			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {name} - OnDestroy \t parent:{_parent}", this );
 			
 			_isAlive = false;
 
-			if ( !_parent )
+			if (!_parent)
 				return;
+
+			_parent._children.Remove(this);
 
 			foreach ( var pair in _sceneToCtxRegistry.ToArray( ) )
 			{
-				if( pair.Value == this )
+				if (pair.Value == this)
 					_sceneToCtxRegistry[pair.Key] = _parent;
 			}
 		}
