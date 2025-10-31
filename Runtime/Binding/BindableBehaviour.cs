@@ -4,11 +4,11 @@ namespace Flexy.Core.Binding
 {
 	public abstract class BindableBehaviour : MonoBehaviour, IBindersNotifier
 	{
-		protected			Boolean				_isBindUnready	= false;
+		protected	Boolean			_isBindUnready;
 
-		private readonly	Dictionary<String, List<Binder>>	_attachedBinders		= new Dictionary<String, List<Binder>>( );
+		private readonly	Dictionary<String, List<Binder>>	_attachedBinders	= new();
     
-		public				Boolean				ReadyForBind			
+		public		Boolean			ReadyForBind				
 		{
 			get => !_isBindUnready;
 			set => _isBindUnready = !value;

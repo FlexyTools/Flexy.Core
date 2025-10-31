@@ -128,7 +128,7 @@ namespace Flexy.Core.GameContexts
 			if (!_parent)
 				return;
 
-			_parent._children.Remove(this);
+			_parent!._children.Remove(this);
 
 			foreach ( var pair in _sceneToCtxRegistry.ToArray( ) )
 			{
@@ -147,9 +147,9 @@ namespace Flexy.Core.GameContexts
 			foreach ( var svc in gameObject.GetComponents<IService>( ) )
 				SetService( svc );
 
-			if( _services )
+			if (_services)
 			{
-				foreach ( var svc in _services.GetComponents<MonoBehaviour>( ) )
+				foreach ( var svc in _services!.GetComponents<MonoBehaviour>( ) )
 					SetServiceImpl( svc );
 
 				foreach ( Transform tr in _services.transform )
@@ -179,7 +179,7 @@ namespace Flexy.Core.GameContexts
 				return (T)svc;
 
 			if (_parent)
-				return _parent.GetService<T>();
+				return _parent!.GetService<T>();
 
 			throw new InvalidOperationException( $"Service {typeof(T).Name} not found" );
 		}
@@ -193,7 +193,7 @@ namespace Flexy.Core.GameContexts
 			if (svc != null)
 				return (T)svc;
 
-			return _parent ? _parent.GetServiceOrNull<T>() : null;
+			return _parent ? _parent!.GetServiceOrNull<T>() : null;
 		}
 		public			void			SetService<T>			( T service )	where T : class	
 		{
