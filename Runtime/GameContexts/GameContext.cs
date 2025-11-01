@@ -446,9 +446,9 @@ namespace Flexy.Core.GameContexts
 	
 	public static class GameContextExt
 	{
-		public static T? GetService<T>( this Component src )	where T:class => GameContext.GetCtx( src ).GetService<T>();
-		public static T? GetService<T>( this GameObject src )	where T:class => GameContext.GetCtx( src ).GetService<T>();
-		public static T? GetService<T>( this Scene src )		where T:class => GameContext.GetCtx( src ).GetService<T>();
+		public static T GetService<T>( this Component src )		where T:class => GameContext.GetCtx( src ).GetService<T>();
+		public static T GetService<T>( this GameObject src )	where T:class => GameContext.GetCtx( src ).GetService<T>();
+		public static T GetService<T>( this Scene src )			where T:class => GameContext.GetCtx( src ).GetService<T>();
 	}
 	
 	public enum EInitializing
@@ -466,15 +466,19 @@ namespace Flexy.Core.GameContexts
 	
 	public static class CachedContextExt
 	{
-		public static	T	GetCached<T>	( this ref T cache, Component callSource ) where T:struct, ICachedContext
+		public static	ref T	GetCached<T>	( this ref T cache, Component callSource )	where T:struct, ICachedContext	
 		{
 			if (cache.Ctx is { IsAlive: true }) 
-				return cache;
+				return ref cache;
 				
 			cache.Ctx = GameContext.GetCtx(callSource);
 			cache.CallSource = callSource;
 
-			return cache;
+			return ref cache;
+		}
+		public static	void	RecacheCtx<T>	( this ref T cache )						where T:struct, ICachedContext	
+		{
+			cache.Ctx = GameContext.GetCtx(cache.CallSource);
 		}
 	}
 }
