@@ -12,7 +12,7 @@ using Object = System.Object;
 namespace Flexy.Core.Editor.Binding;
 
 [CustomPropertyDrawer(typeof(Binder.BindSource), true)]
-public class BindSourcePropertyDrawer : PropertyDrawer
+public class BindSourceDrawer : PropertyDrawer
 {
 	private		List<Component>?	_properties 		= null;
 	private		List<String>		_propertyNames 		= null!;
@@ -166,6 +166,8 @@ public class BindSourcePropertyDrawer : PropertyDrawer
 		var memberNameProp				= property.FindPropertyRelative( "MemberName" );
 		var paramsProp					= property.FindPropertyRelative( "Params" );
 		
+		var errorString = String.Empty;
+		
 		GUILayout.BeginHorizontal();
 		{
 			memberType = typeof(void);
@@ -194,6 +196,12 @@ public class BindSourcePropertyDrawer : PropertyDrawer
 
 			var index	= propertyNames.IndexOf( memberNameProp.stringValue );
 			
+			if (index == -1)
+			{
+				GUI.color = Color.red;
+				errorString = $"Source Has No Property named {memberNameProp.stringValue}";
+			}
+			
 			if (GUILayout.Button("."+memberNameProp.stringValue, new GUIStyle(GUI.skin.button) { alignment = TextAnchor.MiddleLeft }, GUILayout.MinWidth(150)))
 			{
 				var menu = new GenericMenu();
@@ -218,6 +226,7 @@ public class BindSourcePropertyDrawer : PropertyDrawer
 			
 				componentProp.objectReferenceValue	= properties[index];
 			}
+			GUI.color = Color.white;
 		}
 		GUILayout.EndHorizontal();
 
@@ -321,6 +330,11 @@ public class BindSourcePropertyDrawer : PropertyDrawer
 			}
 
 			bindTargetType = bindTargetType.BaseType;
+		}
+		
+		if (!String.IsNullOrWhiteSpace(errorString))
+		{
+			EditorGUILayout.HelpBox(errorString, MessageType.Error);
 		}
 	}
 }

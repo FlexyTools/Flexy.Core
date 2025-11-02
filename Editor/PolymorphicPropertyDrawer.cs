@@ -29,7 +29,8 @@ namespace Flexy.Core.Editor
 			
 			var foldout = new Foldout
 			{
-				pickingMode = PickingMode.Ignore, text = displayName,
+				text = displayName,
+				pickingMode = PickingMode.Ignore, 
 				bindingPath = property.propertyPath
 			};
 			
