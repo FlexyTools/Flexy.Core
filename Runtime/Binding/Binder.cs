@@ -112,7 +112,7 @@ namespace Flexy.Core.Binding
 
 					foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
 					{
-						if (method.Name != memberName || method.GetParameters().Length < 2 || method.GetCustomAttribute<BindableAttribute>(true) == null)
+						if (method.Name != memberName || method.GetParameters().Length < 2)
 							continue;
 
 						action = BindSetterMethod<TArg>(objToBindTo, method, bindSource.Params);
@@ -171,18 +171,15 @@ namespace Flexy.Core.Binding
 
                     if (prop != null)
                     {
-                        if (prop.GetCustomAttribute<BindableAttribute>(true) != null)
-                        {
-                            var propGetter = prop.GetGetMethod(true);
+                        var propGetter = prop.GetGetMethod(true);
 
-							func = BindGetterMethod<TResult>(objToBindTo, propGetter, bindSource.Params);
-                            return;
-                        }
+						func = BindGetterMethod<TResult>(objToBindTo, propGetter, bindSource.Params);
+                        return;
                     }
 
                     foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                     {
-                        if (method.Name != memberName || method.GetCustomAttribute<BindableAttribute>(true) == null)
+                        if (method.Name != memberName)
                             continue;
 
                         func = BindGetterMethod<TResult>(objToBindTo, method, bindSource.Params);
