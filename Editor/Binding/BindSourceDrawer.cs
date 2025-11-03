@@ -6,7 +6,9 @@ using System.Reflection;
 using Flexy.Core.Binding;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Binder = Flexy.Core.Binding.Binder;
+using Label = UnityEngine.UIElements.Label;
 using Object = System.Object;
 
 namespace Flexy.Core.Editor.Binding;
@@ -14,10 +16,8 @@ namespace Flexy.Core.Editor.Binding;
 [CustomPropertyDrawer(typeof(Binder.BindSource), true)]
 public class BindSourceDrawer : PropertyDrawer
 {
-	private		List<Component>?	_properties 		= null;
-	private		List<String>		_propertyNames 		= null!;
-	private		String[]			_propertyNamesNice	= null!;
-	private		Type?				_bindType 			= null;
+	const		String		AllowBindToAnyMemberKey	= $"Flexy/Core/Binders/AllowBindToAnyMember";
+	private		Type?		_bindType 			= null;
 		
 	public override void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )	
 	{
@@ -43,10 +43,7 @@ public class BindSourceDrawer : PropertyDrawer
 			return;
 		}
 
-		if (_properties == null || _properties.Count == 0)
-			UpdateMethods( property.FindPropertyRelative( "Component" ), _bindType, out _properties, out _propertyNames, out _propertyNamesNice );
-
-		DrawProp	( property, _bindType, out _, _properties, _propertyNames, _propertyNamesNice );
+		DrawProp	( property, _bindType, out _ );
 		GUILayout.Space(10);
 	}
 	public override Single	GetPropertyHeight	( SerializedProperty property, GUIContent label )					
@@ -86,35 +83,46 @@ public class BindSourceDrawer : PropertyDrawer
 				if (!component)
 					continue;
 					
-				GetMethodsFromObj(component, component.GetType(), "", bindType, properties, propertyNames, propertyNamesNiceList);
+				var seenTypes = new HashSet<Type>();
+				var allowBindToAnyMemberKey = EditorPrefs.GetBool(AllowBindToAnyMemberKey, false);
+				
+				GetMethodsFromObj(seenTypes, 1, component, component.GetType(), "", bindType, !allowBindToAnyMemberKey, properties, propertyNames, propertyNamesNiceList);
 				propertyNamesNice = propertyNamesNiceList.ToArray();
 			}
 		}
 	}
-	public static	void	GetMethodsFromObj	( Component component, Type? objType, String propPrefix, Type bindType, List<Component> properties, List<String> propertyNames, List<String> niceNames )												
+	public static	void	GetMethodsFromObj	( HashSet<Type> seenTypes, int level, Component component, Type? objType, String propPrefix, Type bindType, Boolean onlyBindable, List<Component> properties, List<String> propertyNames, List<String> niceNames )												
 	{
-		if (objType == null || objType == typeof(Object))
+		if (level >= 3 || objType == null || objType == typeof(Object))
 			return;
 		
 		var type = objType;
 		do
 		{
+			if (!seenTypes.Add(type))
+				break;
+
 			foreach (var propertyInfo in type!.GetProperties( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ))
 			{
+				var typeProviderMemberName = default(String);
+			
 				var attr = propertyInfo.GetCustomAttribute<BindableAttribute>(true);
 
-				if (attr == null)
+				if (attr != null)
+					typeProviderMemberName	= attr.TypeProvider;
+
+				else if (onlyBindable)
 					continue;
 
 				if (bindType.IsAssignableFrom( propertyInfo.PropertyType ))
 				{
 					properties.Add		( component );
 					propertyNames.Add	( propPrefix + propertyInfo.Name );
-					niceNames.Add		( ObjectNames.NicifyVariableName( objType.Name + " . " + propertyInfo.Name ) );
+					niceNames.Add		( ObjectNames.NicifyVariableName( component.GetType().Name + ":  " + propPrefix + propertyInfo.Name ) );
 				}
-				else if (propertyInfo.PropertyType.IsClass)
+				else if (propertyInfo.PropertyType.IsClass && !propertyInfo.PropertyType.IsByRef)
 				{
-					var memberName	= attr.TypeProvider;
+					var memberName	= typeProviderMemberName;
 					var propType	= propertyInfo.PropertyType;
 						
 					if  (memberName != null)
@@ -136,16 +144,19 @@ public class BindSourceDrawer : PropertyDrawer
 						}
 					}
 						
-					GetMethodsFromObj(component, propType, propPrefix + propertyInfo.Name + ".", bindType, properties, propertyNames, niceNames);
+					GetMethodsFromObj(seenTypes, level + 1, component, propType, propPrefix + propertyInfo.Name + ".", bindType, onlyBindable, properties, propertyNames, niceNames);
 				}
 			}
 			type = type.BaseType;
 		}
-		while (type != typeof(Object));
+		while (type != null && type != typeof(Object));
 
 		type = objType;
 		do
 		{
+			if (!seenTypes.Add(type))
+				break;
+		
 			foreach( var methodInfo in type.GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).Where( methodInfo => bindType.IsAssignableFrom( methodInfo.ReturnType ) && methodInfo.GetCustomAttributes( typeof(BindableAttribute), true ).Length > 0 ) )
 			{
 				properties.Add		( component );
@@ -160,7 +171,7 @@ public class BindSourceDrawer : PropertyDrawer
 		}
 		while (type != null && type != typeof(Object));
 	}
-	public static	void	DrawProp			( SerializedProperty property, Type bindType, out Type memberType, List<Component> properties, List<String> propertyNames, String[] propertyNamesNice )	
+	public static	void	DrawProp			( SerializedProperty property, Type bindType, out Type memberType )	
 	{
 		var componentProp				= property.FindPropertyRelative( "Component" );
 		var memberNameProp				= property.FindPropertyRelative( "MemberName" );
@@ -173,42 +184,46 @@ public class BindSourceDrawer : PropertyDrawer
 			memberType = typeof(void);
 				
 			GUILayout.Label( property.displayName );
-			EditorGUI.BeginChangeCheck		( );
 			EditorGUILayout.PropertyField	( componentProp, GUIContent.none );
 
-			var targetChanged	= false;
-
-			if (EditorGUI.EndChangeCheck())
-			{
-				UpdateMethods	( componentProp, bindType, out properties, out propertyNames, out propertyNamesNice );
-				targetChanged	= true;
-			}
-
-			if (componentProp.objectReferenceValue == null || propertyNames.Count == 0)
+			if (componentProp.objectReferenceValue == null)
 			{
 				GUI.color						= Color.red;
-				EditorGUILayout.LabelField		( componentProp.objectReferenceValue != null ? "Source Has No Bindable Properties" : "Choose Source First!!!" );
+				EditorGUILayout.LabelField		( "Choose Source First!!!" );
 				GUI.color						= Color.white;
 					
 				GUILayout.EndHorizontal();
 				return;
 			}
 
-			var index	= propertyNames.IndexOf( memberNameProp.stringValue );
-			
-			if (index == -1)
+			if (String.IsNullOrWhiteSpace(memberNameProp.stringValue))
 			{
 				GUI.color = Color.red;
-				errorString = $"Source Has No Property named {memberNameProp.stringValue}";
+				errorString = $"Property not selected !!!";
+			}
+			else 
+			{
+				var testName = memberNameProp.stringValue;
+			
+				if (testName.Contains("."))
+					testName = testName.Split('.')[0];
+			
+				if (componentProp.objectReferenceValue.GetType().GetMember(testName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Length == 0)
+				{
+					GUI.color = Color.red;
+					errorString = $"Source Has No Property named {memberNameProp.stringValue}";
+				}
 			}
 			
 			if (GUILayout.Button("."+memberNameProp.stringValue, new GUIStyle(GUI.skin.button) { alignment = TextAnchor.MiddleLeft }, GUILayout.MinWidth(150)))
 			{
+				UpdateMethods( property.FindPropertyRelative( "Component" ), bindType, out var properties, out var propertyNames, out var propertyNamesNice );
+							
 				var menu = new GenericMenu();
 				for (var i = 0; i < propertyNamesNice.Length; i++)
 				{
 					var idx = i;
-					menu.AddItem(new GUIContent(propertyNamesNice[i]), idx == index, () =>
+					menu.AddItem(new GUIContent(propertyNamesNice[i]), /*idx == index*/false, () =>
 					{
 						Undo.RecordObjects(property.serializedObject.targetObjects, "Target Property Changed");
 						memberNameProp.stringValue = propertyNames[idx];
@@ -218,13 +233,6 @@ public class BindSourceDrawer : PropertyDrawer
 					});
 				}
 				menu.ShowAsContext();
-			}
-			else if( targetChanged )
-			{
-				if (index == -1)
-					index = 0;
-			
-				componentProp.objectReferenceValue	= properties[index];
 			}
 			GUI.color = Color.white;
 		}
@@ -335,6 +343,30 @@ public class BindSourceDrawer : PropertyDrawer
 		if (!String.IsNullOrWhiteSpace(errorString))
 		{
 			EditorGUILayout.HelpBox(errorString, MessageType.Error);
+		}
+	}
+	
+	public class Preferences : SettingsProvider
+	{
+		[SettingsProvider]
+		public static SettingsProvider CreateProvider() => new Preferences("Preferences/Flexy/Core/Binders", SettingsScope.User);
+
+		private Preferences(String path, SettingsScope scope) : base(path, scope) { }
+
+		public override void OnActivate(String searchContext, VisualElement root)
+		{
+			var label = new Label("Binders"){ style = { paddingLeft = 10, paddingTop = 6, marginBottom = 10, fontSize = 19, unityFontStyleAndWeight = FontStyle.Bold}};
+			root.Add(label);
+		
+			var scroll = new ScrollView { style = { paddingLeft = 10, paddingTop = 6 } };
+			root.Add(scroll);
+
+			var toggle = new Toggle { style = { flexGrow = 1 } };
+			scroll.Add(toggle);
+
+			toggle.text = "Allow bind to any member";
+			toggle.value = EditorPrefs.GetBool(AllowBindToAnyMemberKey, false);
+			toggle.RegisterValueChangedCallback(ev => EditorPrefs.SetBool(AllowBindToAnyMemberKey, ev.newValue));
 		}
 	}
 }
