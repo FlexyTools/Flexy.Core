@@ -16,8 +16,8 @@ namespace Flexy.Core.Editor.Binding;
 [CustomPropertyDrawer(typeof(Binder.BindSource), true)]
 public class BindSourceDrawer : PropertyDrawer
 {
-	const		String		AllowBindToAnyMemberKey	= $"Flexy/Core/Binders/AllowBindToAnyMember";
-	private		Type?		_bindType 			= null;
+	internal const	String	AllowBindToAnyMemberKey	= $"Flexy/Core/Binders/AllowBindToAnyMember";
+	private			Type?	_bindType 			= null;
 		
 	public override void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )	
 	{
@@ -343,30 +343,6 @@ public class BindSourceDrawer : PropertyDrawer
 		if (!String.IsNullOrWhiteSpace(errorString))
 		{
 			EditorGUILayout.HelpBox(errorString, MessageType.Error);
-		}
-	}
-	
-	public class Preferences : SettingsProvider
-	{
-		[SettingsProvider]
-		public static SettingsProvider CreateProvider() => new Preferences("Preferences/Flexy/Core/Binders", SettingsScope.User);
-
-		private Preferences(String path, SettingsScope scope) : base(path, scope) { }
-
-		public override void OnActivate(String searchContext, VisualElement root)
-		{
-			var label = new Label("Binders"){ style = { paddingLeft = 10, paddingTop = 6, marginBottom = 10, fontSize = 19, unityFontStyleAndWeight = FontStyle.Bold}};
-			root.Add(label);
-		
-			var scroll = new ScrollView { style = { paddingLeft = 10, paddingTop = 6 } };
-			root.Add(scroll);
-
-			var toggle = new Toggle { style = { flexGrow = 1 } };
-			scroll.Add(toggle);
-
-			toggle.text = "Allow bind to any member";
-			toggle.value = EditorPrefs.GetBool(AllowBindToAnyMemberKey, false);
-			toggle.RegisterValueChangedCallback(ev => EditorPrefs.SetBool(AllowBindToAnyMemberKey, ev.newValue));
 		}
 	}
 }
