@@ -8,12 +8,12 @@ namespace Flexy.Core.GameContexts
 	[DefaultExecutionOrder(Int16.MinValue+200)]
 	public class GameContext : MonoBehaviour
 	{
-		[RuntimeStaticClear]	static void StaticClear	( )
+		[RuntimeStaticClear]	static void StaticClear	( )	
 		{
 			_global = null!;
 			_sceneToCtxRegistry.Clear();
 		}
-		[RuntimeStaticInit]		static void StaticInit	( )
+		[RuntimeStaticInit]		static void StaticInit	( )	
 		{
 			SceneManager.sceneUnloaded -= ClearSceneRegistration;
 			SceneManager.sceneUnloaded += ClearSceneRegistration;
