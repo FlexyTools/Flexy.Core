@@ -18,7 +18,9 @@ public class Preferences : SettingsProvider
 	public override	void	OnActivate	( String searchContext, VisualElement root )	
 	{
 		AddBinders(searchContext, root);
+		#if !UNITY_6000_3_OR_NEWER
 		AddToolbar(searchContext, root);
+		#endif
 	}
 
 	private			void	AddBinders	( String searchContext, VisualElement root )	
@@ -36,6 +38,8 @@ public class Preferences : SettingsProvider
 		toggle.value = EditorPrefs.GetBool(BindSourceDrawer.AllowBindToAnyMemberKey, false);
 		toggle.RegisterValueChangedCallback(ev => EditorPrefs.SetBool(BindSourceDrawer.AllowBindToAnyMemberKey, ev.newValue));
 	}
+	
+	#if !UNITY_6000_3_OR_NEWER
 	private			void	AddToolbar	( String searchContext, VisualElement root )	
 	{
 		var label = new Label("Unity Toolbar"){ style = { paddingLeft = 10, paddingTop = 6, marginBottom = 5, marginTop = 15, fontSize = 19, unityFontStyleAndWeight = FontStyle.Bold}};
@@ -107,6 +111,7 @@ public class Preferences : SettingsProvider
 			});
 		}
 	}
+	#endif
 	
 	private		List<ElementData>	LoadGroup	( String groupName, VisualElement container )	
 	{
@@ -145,6 +150,7 @@ public class Preferences : SettingsProvider
 		EditorPrefs.SetString(prefKey, newJson);
 	}
 
+	#if !UNITY_6000_3_OR_NEWER
 	private		IEnumerable<VisualElement>	GetPredefinedContainers	( )		
 	{
 		yield return UnityEditorTopToolbar.LeftPocket_Left;
@@ -155,6 +161,7 @@ public class Preferences : SettingsProvider
 		yield return UnityEditorTopToolbar.RightPocket_Center;
 		yield return UnityEditorTopToolbar.RightPocket_Right;
 	}
+	#endif
 
 	[Serializable]
 	private class SavedElements 

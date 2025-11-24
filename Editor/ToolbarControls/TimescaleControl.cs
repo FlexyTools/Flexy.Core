@@ -1,15 +1,34 @@
 using System;
 using UnityEditor;
+#if UNITY_6000_3_OR_NEWER
+using UnityEditor.Toolbars;
+#endif
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Flexy.Core.Editor.ToolbarControls;
 
 [InitializeOnLoad]
 public static class TimescaleControl
 {
+	#if UNITY_6000_3_OR_NEWER
+	[MainToolbarElement("Flexy/Timescale", defaultDockPosition = MainToolbarDockPosition.Middle)]
+	public static MainToolbarElement CreateToolbarElement	( )	
+	{
+		var type = typeof(MainToolbarButton).Assembly.GetType("UnityEditor.Toolbars.MainToolbarCustom", true);
+		var element = (MainToolbarElement)Activator.CreateInstance(type, (Func<VisualElement>)Creator);
+			
+		return element;
+	}
+	#else
 	static TimescaleControl( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( "Timescale", OnTestRunGUI, UnityEditorTopToolbar.EPlace.Center ); }
+	#endif
 	
-	private static void		OnTestRunGUI			( )	
+	private static VisualElement	Creator			( )		
+	{
+		return new IMGUIContainer(OnTestRunGUI){style = { marginLeft = 10, marginRight = 10}};
+	}
+	private static void				OnTestRunGUI	( )		
 	{
 		GUILayout.BeginHorizontal( GUILayout.MaxWidth(300), GUILayout.Height(14) );
 		{

@@ -6,6 +6,7 @@ using UnityEngine.UIElements;
 
 namespace Flexy.Core.Editor.ToolbarControls
 {
+	#if !UNITY_6000_3_OR_NEWER
 	[InitializeOnLoad]
 	public static class UnityEditorTopToolbar
 	{
@@ -94,4 +95,5 @@ namespace Flexy.Core.Editor.ToolbarControls
 			Right
 		}
 	}
+	#endif
 }
