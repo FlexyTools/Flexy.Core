@@ -25,7 +25,7 @@ namespace Flexy.Core
         protected			void	FillRoot			( )		
         {
 	        if( DoDrawDefaultInspector )
-		        InspectorElement.FillDefaultInspector( _root, serializedObject , this );
+		        InspectorElement.FillDefaultInspector( _root, serializedObject, this );
 		
 	        var ac = (Action)OnInspectorGUI;
 	        
@@ -47,7 +47,7 @@ namespace Flexy.Core
         public  override	void	OnInspectorGUI		( )		{ }
         private				void	DrawRuntimeGui		( )		
         {
-	        if (targets.Length != 1 || !EditorApplication.isPlaying)
+	        if (targets.Length != 1 || !EditorApplication.isPlaying || !((MonoBehaviour)target).gameObject.scene.IsValid())
 				return;	
          
 			var obj = target;

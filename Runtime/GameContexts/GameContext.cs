@@ -29,8 +29,8 @@ namespace Flexy.Core.GameContexts
 		}
 
         [Header("Game Ctx")]
+        [Tooltip("Optional GameObject to register service from")]
 		[SerializeField]	GameObject?			_services;
-		[SerializeField]	Boolean				_ignoreServiceInitFailures;
 		public				ELinkCtxTo	        LinkTo;
 		
 		protected static	GameContext			_global = null!;
@@ -231,7 +231,7 @@ namespace Flexy.Core.GameContexts
 			}
 		}
 
-		public async		UniTask<EInitializing> WaitInitializing	( )								
+		public async	UniTask<EInitializing> WaitInitializing	( )									
 		{
 			while (InitStatus == EInitializing.InProgress)
 				await UniTask.Yield();
@@ -249,11 +249,8 @@ namespace Flexy.Core.GameContexts
 				catch (Exception ex)	
 				{
 					Debug.LogException(ex);
-					if (!_ignoreServiceInitFailures)
-					{
-						InitStatus = EInitializing.InitFail;
-						break;
-					}
+					InitStatus = EInitializing.InitFail;
+					break;
 				}
 			}
 		}
@@ -268,11 +265,8 @@ namespace Flexy.Core.GameContexts
 				catch ( Exception ex )	
 				{
 					Debug.LogException(ex);
-					if (!_ignoreServiceInitFailures)
-					{
-						InitStatus = EInitializing.InitFail;
-						break;
-					}
+					InitStatus = EInitializing.InitFail;
+					break;
 				}
 			}
 		}
@@ -491,4 +485,15 @@ namespace Flexy.Core.GameContexts
 			cache.Ctx = GameContext.GetCtx(cache.CallSource);
 		}
 	}
+	
+	#if UNITY_EDITOR
+	[UnityEditor.CustomEditor(typeof(GameContext), true)]
+	public class GameContextEditor : Editor_WithRuntimeGui
+	{
+		public override void OnInspectorGUI()
+		{
+			UnityEditor.EditorGUILayout.HelpBox("Register self to services\nThan all IService behaviours on this GameObject\nThen all MonoBehaviours from Services GameObject\nThan all MonoBehaviours from Services direct children", UnityEditor.MessageType.Info);
+		}
+	}
+	#endif
 }
