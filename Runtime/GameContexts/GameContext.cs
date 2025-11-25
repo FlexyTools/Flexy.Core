@@ -39,13 +39,15 @@ namespace Flexy.Core.GameContexts
 		private				Boolean				_isAlive;
 		private				IGameContextExtension?	_ext;
 		
-		private static readonly		Dictionary<Scene, GameContext>	_sceneToCtxRegistry = new ( );
-		private readonly			Dictionary<Type, Object>		_registeredServicesDict	= new ( );
+		private static readonly		Dictionary<Scene, GameContext>	_sceneToCtxRegistry		= new();
+		private readonly			Dictionary<Type, Object>		_registeredServicesDict	= new();
+		private readonly			List<Object>					_registeredServicesList	= new();
 		
 		public static	GameContext		Global					=> _global.OrNull() is not null ? _global : _global = CreateGlobalContext();
 		public			GameContext?	Parent					=> _parent;
 
 		public			EInitializing	InitStatus				{ get; protected set; }
+		public			Object?			InitializingService		{ get; protected set; }
 
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
 		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene );
@@ -108,13 +110,12 @@ namespace Flexy.Core.GameContexts
 
 			RegisterCtxServices();
 			
-			if (_registeredServicesDict.Count > 0)
+			if (_registeredServicesList.Count > 0)
 			{
-				var services				= _registeredServicesDict.Values.OfType<IService>()		.OrderBy( s => s.Order ).ToArray();
-				var asyncServices			= _registeredServicesDict.Values.OfType<IServiceAsync>().OrderBy( s => s.Order ).ToArray();
+				var services				= _registeredServicesList.OfType<IService>()		.OrderBy( s => s.Order ).ToArray();
+				var asyncServices			= _registeredServicesList.OfType<IServiceAsync>()	.OrderBy( s => s.Order ).ToArray();
 				
-				InitializeServices			( services );
-				DoInitializeAsyncServices	( asyncServices ).Forget( Debug.LogException );
+				RunServiceInitialisation(services, asyncServices).Forget(Debug.LogException);
 			}
 		}
 		protected		void			OnDestroy				( )		
@@ -208,8 +209,11 @@ namespace Flexy.Core.GameContexts
 			var typeActual	= service.GetType();
 
 			Debug.Log	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(typeActual)}" );
-			try { _registeredServicesDict.Add(typeActual, service); }
+			try { _registeredServicesDict[typeActual] = service; }
 			catch ( Exception ex ) { Debug.LogException(ex); }
+
+			_registeredServicesList.Remove(service);
+			_registeredServicesList.Add(service);
 
 			try { _ext?.SetService(typeActual, service); }
 			catch ( Exception ex ) { Debug.LogException(ex); }
@@ -222,7 +226,7 @@ namespace Flexy.Core.GameContexts
 						continue;
 
 					Debug.Log	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(serviceType)} => {GetDisplayServiceName(typeActual)}" );
-					try { _registeredServicesDict.Add(serviceType, service); }
+					try { _registeredServicesDict[serviceType] = service; }
 					catch ( Exception ex ) { Debug.LogException(ex); }
 					
 					try { _ext?.SetService(serviceType, service); }
@@ -231,7 +235,7 @@ namespace Flexy.Core.GameContexts
 			}
 		}
 
-		public async	UniTask<EInitializing> WaitInitializing	( )									
+		public async UniTask<EInitializing> WaitInitialization	( )									
 		{
 			while (InitStatus == EInitializing.InProgress)
 				await UniTask.Yield();
@@ -260,6 +264,7 @@ namespace Flexy.Core.GameContexts
 			{
 				try						
 				{ 
+					InitializingService = service;
 					await service.OrderedInitAsync(this); 
 				}
 				catch ( Exception ex )	
@@ -269,9 +274,13 @@ namespace Flexy.Core.GameContexts
 					break;
 				}
 			}
+			
+			InitializingService = null;
 		}
-		private async			UniTask	DoInitializeAsyncServices( IServiceAsync[] asyncServices )	
+		private async			UniTask	RunServiceInitialisation( IService[] services, IServiceAsync[] asyncServices )	
 		{
+			InitializeServices(services);
+		
 			if (InitStatus == EInitializing.InitFail) 
 				return;
 			
@@ -280,8 +289,8 @@ namespace Flexy.Core.GameContexts
 			if (InitStatus != EInitializing.InitFail) 
 				InitStatus = EInitializing.Done;
 		}
-		
-		public static	String			GetDisplayServiceName	( Type svcType )								
+
+		private static	String			GetDisplayServiceName	( Type svcType )								
 		{
 			var result = "";
 
@@ -358,7 +367,7 @@ namespace Flexy.Core.GameContexts
 				return;
 
 			GUILayout.Space(10);
-			GUILayout.Label("Registered Services:");
+			GUILayout.Label("Registered Services:", UnityEditor.EditorStyles.boldLabel);
 
 			if (_parent)
 			{
@@ -387,7 +396,7 @@ namespace Flexy.Core.GameContexts
 				}
 
 				GUILayout.Space(10);
-				GUILayout.Label("Scene To Ctx");
+				GUILayout.Label("Scene -> Game Context  mapping", UnityEditor.EditorStyles.boldLabel);
 				GUILayout.BeginHorizontal();
 				{
 					GUILayout.Space(20);
@@ -492,7 +501,18 @@ namespace Flexy.Core.GameContexts
 	{
 		public override void OnInspectorGUI()
 		{
-			UnityEditor.EditorGUILayout.HelpBox("Register self to services\nThan all IService behaviours on this GameObject\nThen all MonoBehaviours from Services GameObject\nThan all MonoBehaviours from Services direct children", UnityEditor.MessageType.Info);
+			var style = new GUIStyle(UnityEditor.EditorStyles.helpBox) { richText = true };
+			GUILayout.Space(10);
+			
+			var message = "<size=16><b>Services registration flow</b></size>\n\n" +
+			              "Register self to services\n" +
+			              "Than all IService behaviours on this GameObject\n" +
+			              "Then all MonoBehaviours from Services GameObject\n" +
+			              "Than all MonoBehaviours from Services direct children";
+			              
+			var icon = UnityEditor.EditorGUIUtility.IconContent("console.infoicon").image as Texture2D;
+			
+			GUILayout.Label(new GUIContent(message, icon), style);
 		}
 	}
 	#endif
