@@ -201,21 +201,25 @@ namespace Flexy.Core.GameContexts
 
 			return _parent ? _parent!.GetServiceOrNull<T>() : null;
 		}
-		public			void			SetService<T>			( T service )	where T : class	
+		public			void			SetService<T>			( T service, Boolean replace = false )	where T : class	
 		{
-			if( service == null )
+			if (service == null)
 				return;
 
 			var typeActual	= service.GetType();
 
 			Debug.Log	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(typeActual)}" );
-			try { _registeredServicesDict[typeActual] = service; }
+			try 
+			{
+				if (replace)	_registeredServicesDict[typeActual] = service;
+				else			_registeredServicesDict.Add(typeActual, service); 
+			}
 			catch ( Exception ex ) { Debug.LogException(ex); }
 
-			_registeredServicesList.Remove(service);
-			_registeredServicesList.Add(service);
+			if (!_registeredServicesList.Contains(service))
+				_registeredServicesList.Add(service);
 
-			try { _ext?.SetService(typeActual, service); }
+			try { _ext?.SetService(typeActual, service, replace); }
 			catch ( Exception ex ) { Debug.LogException(ex); }
 
 			if (typeActual.GetCustomAttribute<ServiceTypesAttribute>() is {} si)
@@ -226,10 +230,14 @@ namespace Flexy.Core.GameContexts
 						continue;
 
 					Debug.Log	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(serviceType)} => {GetDisplayServiceName(typeActual)}" );
-					try { _registeredServicesDict[serviceType] = service; }
+					try 
+					{
+						if (replace)	_registeredServicesDict[serviceType] = service;
+						else			_registeredServicesDict.Add(serviceType, service);
+					}
 					catch ( Exception ex ) { Debug.LogException(ex); }
 					
-					try { _ext?.SetService(serviceType, service); }
+					try { _ext?.SetService(serviceType, service, replace); }
 					catch ( Exception ex ) { Debug.LogException(ex); }
 				}
 			}
