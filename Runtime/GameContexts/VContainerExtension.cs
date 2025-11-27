@@ -41,7 +41,7 @@ public class VContainerExtension: LifetimeScope, IGameContextExtension
 	}
 		
 #if UNITY_EDITOR
-	[RuntimeInspectorUI( Repaint = true )]
+	[RuntimeInspectorGui( Repaint = true )]
 	public void RuntimeGUI	( )
 	{
 		if( !Application.isPlaying || !gameObject.scene.IsValid( ) )

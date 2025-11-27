@@ -46,7 +46,7 @@ namespace Flexy.Core.GameContexts
 		public static	GameContext		Global					=> _global.OrNull() is not null ? _global : _global = CreateGlobalContext();
 		public			GameContext?	Parent					=> _parent;
 
-		public			EInitializing	InitStatus				{ get; protected set; }
+		public			EInitialization	InitStatus				{ get; protected set; }
 		public			Object?			InitializingService		{ get; protected set; }
 
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
@@ -243,9 +243,9 @@ namespace Flexy.Core.GameContexts
 			}
 		}
 
-		public async UniTask<EInitializing> WaitInitialization	( )									
+		public async UniTask<EInitialization> WaitInitialization	( )									
 		{
-			while (InitStatus == EInitializing.InProgress)
+			while (InitStatus == EInitialization.InProgress)
 				await UniTask.Yield();
 			
 			return InitStatus;
@@ -261,7 +261,7 @@ namespace Flexy.Core.GameContexts
 				catch (Exception ex)	
 				{
 					Debug.LogException(ex);
-					InitStatus = EInitializing.InitFail;
+					InitStatus = EInitialization.Failed;
 					break;
 				}
 			}
@@ -278,7 +278,7 @@ namespace Flexy.Core.GameContexts
 				catch ( Exception ex )	
 				{
 					Debug.LogException(ex);
-					InitStatus = EInitializing.InitFail;
+					InitStatus = EInitialization.Failed;
 					break;
 				}
 			}
@@ -289,13 +289,13 @@ namespace Flexy.Core.GameContexts
 		{
 			InitializeServices(services);
 		
-			if (InitStatus == EInitializing.InitFail) 
+			if (InitStatus == EInitialization.Failed) 
 				return;
 			
 			await InitializeAsyncServices( asyncServices );
 			
-			if (InitStatus != EInitializing.InitFail) 
-				InitStatus = EInitializing.Done;
+			if (InitStatus != EInitialization.Failed) 
+				InitStatus = EInitialization.Done;
 		}
 
 		private static	String			GetDisplayServiceName	( Type svcType )								
@@ -472,10 +472,10 @@ namespace Flexy.Core.GameContexts
 		public static T GetService<T>( this Scene src )			where T:class => GameContext.GetCtx( src ).GetService<T>();
 	}
 	
-	public enum EInitializing
+	public enum EInitialization
 	{
 		InProgress = 0,
-		InitFail = 1,
+		Failed = 1,
 		Done = 2,
 	}
 	
