@@ -45,6 +45,7 @@ namespace Flexy.Core.GameContexts
 		
 		public static	GameContext		Global					=> _global.OrNull() is not null ? _global : _global = CreateGlobalContext();
 		public			GameContext?	Parent					=> _parent;
+		public	IGameContextExtension?	Ext						=> _ext;
 
 		public			EInitialization	InitStatus				{ get; protected set; }
 		public			Object?			InitializingService		{ get; protected set; }
@@ -298,14 +299,14 @@ namespace Flexy.Core.GameContexts
 				InitStatus = EInitialization.Done;
 		}
 
-		private static	String			GetDisplayServiceName	( Type svcType )								
+		public static	String			GetDisplayServiceName	( Type svcType )								
 		{
 			var result = "";
 
-			if( svcType.DeclaringType is {} dc )
+			if (svcType.DeclaringType is {} dc)
 				result = dc.Name + ".";
 
-			if( svcType.IsGenericType )
+			if (svcType.IsGenericType)
 			{
 				result += svcType.Name[..^2] + "<" + svcType.GetGenericArguments()[0].Name + ">";
 			}

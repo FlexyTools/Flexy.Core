@@ -24,13 +24,22 @@ public class VContainerExtension: LifetimeScope, IGameContextExtension
 #endif
 	}
 
-	protected override void Awake()
+	private Dictionary<Type, Object>? _registeredServicesDict;
+	private Boolean _builded = false;
+
+	protected override	void	Awake		( )								
 	{
+		if (_builded) 
+			return;
+		
+		_builded = true;
 		base.Awake();
 	}
-
-	protected override		void	Configure				( IContainerBuilder builder )
+	protected override	void	Configure	( IContainerBuilder builder )	
 	{
+		if (_registeredServicesDict == null) 
+			return;
+		
 		foreach ( var group in _registeredServicesDict.GroupBy( p => p.Value, p => p.Key ) )
 		{
 			var rb = builder.RegisterInstance( group.Key );
@@ -40,6 +49,25 @@ public class VContainerExtension: LifetimeScope, IGameContextExtension
 		}
 	}
 		
+	public				void	SetParent				( GameContext parent )											
+	{
+		parentReference.Object = parent.GetComponent<LifetimeScope>();
+	}
+	public				void	RegisterInitialServices	( Dictionary<Type, Object> registeredServicesDict )				
+	{
+		_registeredServicesDict = registeredServicesDict;
+		
+		Awake();		
+	}
+	public				T		GetService<T>			( ) where T : class												
+	{
+		return Container.ResolveOrDefault<T>( );
+	}
+	public				void	SetService<T>			( Type serviceType, T service, Boolean replace) where T : class	
+	{
+		
+	}
+
 #if UNITY_EDITOR
 	[RuntimeInspectorGui( Repaint = true )]
 	public void RuntimeGUI	( )
@@ -84,23 +112,5 @@ public class VContainerExtension: LifetimeScope, IGameContextExtension
 		}
 	}
 #endif
-		
-	public void SetParent(GameContext parent)
-	{
-		parentReference.Object = parent.GetComponent<LifetimeScope>();
-	}
-
-	private Dictionary<Type, Object> _registeredServicesDict;
-
-	public void RegisterAdditionalServices( Dictionary<Type, Object> registeredServicesDict )
-	{
-		_registeredServicesDict = registeredServicesDict;
-		Awake( );
-	}
-
-	public T GetService<T>() where T : class
-	{
-		return Container.ResolveOrDefault<T>( );
-	}
 }
 #endif
