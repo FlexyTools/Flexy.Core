@@ -501,8 +501,9 @@ namespace Flexy.Core.GameContexts
 	
 	public interface ICachedContext
 	{
-		public GameContext	Ctx			{ get; set; }
-		public Component	CallSource	{ get; set; }
+		public GameContext	Ctx				{ get; set; }
+		public Component	CallSource		{ get; set; }
+		public void			RecacheFacade	( ){}
 	}
 	
 	public static class CachedContextExt
@@ -514,12 +515,14 @@ namespace Flexy.Core.GameContexts
 				
 			cache.Ctx = GameContext.GetCtx(callSource);
 			cache.CallSource = callSource;
+			cache.RecacheFacade();
 
 			return ref cache;
 		}
 		public static	void	RecacheCtx<T>	( this ref T cache )						where T:struct, ICachedContext	
 		{
 			cache.Ctx = GameContext.GetCtx(cache.CallSource);
+			cache.RecacheFacade();
 		}
 	}
 	
