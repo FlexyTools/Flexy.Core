@@ -147,39 +147,6 @@ namespace Flexy.Core.GameContexts
 			_parent = ctx;
 			_ext?.SetParent(_parent);
 		}
-		public 			void			RegisterCtxServices		( )								
-		{
-			_registeredServicesDict.Add(typeof(GameContext), this);
-		
-			if (GetType() != typeof(GameContext))
-				_registeredServicesDict.Add(GetType(), this);
-		
-			foreach (var svc in gameObject.GetComponents<IService>())
-				SetService(svc);
-
-			if (_services)
-			{
-				foreach (var svc in _services!.GetComponents<MonoBehaviour>())
-					SetServiceImpl( svc );
-
-				foreach (Transform tr in _services.transform)
-					foreach (var svc in tr.GetComponents<MonoBehaviour>())
-						SetServiceImpl(svc);
-			}
-
-			void SetServiceImpl( MonoBehaviour service )
-			{
-				if (!service)	//Probably script class was defined out on this platform
-					return;
-
-				if (service is ServiceProvider sp)
-					sp.ProvideServices(this);
-				else
-					SetService(service);
-			}
-			
-			_ext?.RegisterInitialServices( _registeredServicesDict );
-		}
 		public			T				GetService<T>			( ) where T : class				
 		{
 			if (_registeredServicesDict.TryGetValue(typeof(T), out var svc))
@@ -258,8 +225,26 @@ namespace Flexy.Core.GameContexts
 				}
 			}
 		}
+		public static	String			GetDisplayServiceName	( Type svcType )										
+		{
+			var result = "";
 
-		public async UniTask<EInitialization> WaitInitialization	( )									
+			if (svcType.DeclaringType is {} dc)
+				result = dc.Name + ".";
+
+			if (svcType.IsGenericType)
+			{
+				result += svcType.Name[..^2] + "<" + svcType.GetGenericArguments()[0].Name + ">";
+			}
+			else
+			{
+				result += svcType.Name;
+			}
+
+			return result;
+		}
+
+		public async UniTask<EInitialization> WaitInitialization( )									
 		{
 			while (InitStatus == EInitialization.InProgress)
 				await UniTask.Yield();
@@ -314,23 +299,38 @@ namespace Flexy.Core.GameContexts
 				InitStatus = EInitialization.Done;
 		}
 
-		public static	String			GetDisplayServiceName	( Type svcType )								
+		private 		void			RegisterCtxServices		( )												
 		{
-			var result = "";
+			_registeredServicesDict.Add(typeof(GameContext), this);
+		
+			if (GetType() != typeof(GameContext))
+				_registeredServicesDict.Add(GetType(), this);
+		
+			foreach (var svc in gameObject.GetComponents<IService>())
+				SetService(svc);
 
-			if (svcType.DeclaringType is {} dc)
-				result = dc.Name + ".";
-
-			if (svcType.IsGenericType)
+			if (_services)
 			{
-				result += svcType.Name[..^2] + "<" + svcType.GetGenericArguments()[0].Name + ">";
-			}
-			else
-			{
-				result += svcType.Name;
+				foreach (var svc in _services!.GetComponents<MonoBehaviour>())
+					SetServiceImpl( svc );
+
+				foreach (Transform tr in _services.transform)
+				foreach (var svc in tr.GetComponents<MonoBehaviour>())
+					SetServiceImpl(svc);
 			}
 
-			return result;
+			void SetServiceImpl( MonoBehaviour service )
+			{
+				if (!service)	//Probably script class was defined out on this platform
+					return;
+
+				if (service is ServiceProvider sp)
+					sp.ProvideServices(this);
+				else
+					SetService(service);
+			}
+			
+			_ext?.RegisterInitialServices( _registeredServicesDict );
 		}
 		private static	GameContext		CreateGlobalContext		( )												
 		{
@@ -483,13 +483,13 @@ namespace Flexy.Core.GameContexts
 	
 	public static class GameContextExt
 	{
-		public static T		GetService<T>( this Component src )			where T:class => GameContext.GetCtx( src ).GetService<T>();
-		public static T		GetService<T>( this GameObject src )		where T:class => GameContext.GetCtx( src ).GetService<T>();
-		public static T		GetService<T>( this Scene src )				where T:class => GameContext.GetCtx( src ).GetService<T>();
+		public static T		GetService<T>( this Component src )		where T:class => GameContext.GetCtx(src).GetService<T>();
+		public static T		GetService<T>( this GameObject src )	where T:class => GameContext.GetCtx(src).GetService<T>();
+		public static T		GetService<T>( this Scene src )			where T:class => GameContext.GetCtx(src).GetService<T>();
 		
-		public static T? 	GetServiceOrNull<T>( this Component src )	where T:class => GameContext.GetCtx( src ).GetServiceOrNull<T>();
-		public static T? 	GetServiceOrNull<T>( this GameObject src )	where T:class => GameContext.GetCtx( src ).GetServiceOrNull<T>();
-		public static T? 	GetServiceOrNull<T>( this Scene src )		where T:class => GameContext.GetCtx( src ).GetServiceOrNull<T>();
+		public static Boolean	TryGetService<T>( this Component src,	[NotNullWhen(true)] out T? service )	where T:class => GameContext.GetCtx(src).TryGetService(out service);
+		public static Boolean 	TryGetService<T>( this GameObject src,	[NotNullWhen(true)] out T? service )	where T:class => GameContext.GetCtx(src).TryGetService(out service);
+		public static Boolean 	TryGetService<T>( this Scene src,		[NotNullWhen(true)] out T? service )	where T:class => GameContext.GetCtx(src).TryGetService(out service);
 	}
 	
 	public enum EInitialization
