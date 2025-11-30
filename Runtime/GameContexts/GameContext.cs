@@ -81,6 +81,10 @@ namespace Flexy.Core.GameContexts
 				if (_parent)
 					_parent._children.Add(this);
 			}
+			else
+			{
+				_ext?.SetParent(_parent);
+			}
 
 			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {name} - Awake \t parent:{_parent}", this );
 
