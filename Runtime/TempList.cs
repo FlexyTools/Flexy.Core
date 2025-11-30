@@ -17,6 +17,14 @@ public struct TempList<T> : IDisposable
 			
 		return list;
 	}
+	public static TempList<T> Rent( Int32 minCapacity, IEnumerable<T> initial )	
+	{
+		var list = new TempList<T>{ _array = ArrayPool<T>.Shared.Rent( minCapacity ) };
+			
+		list.AddRange( initial );
+			
+		return list;
+	}
 		
 	private T[]		_array;
 	private Int32	_count;
