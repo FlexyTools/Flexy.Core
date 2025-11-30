@@ -1,7 +1,8 @@
 ﻿using System.Linq;
 using System.Reflection;
-using Flexy.AssetRefs;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine.SceneManagement;
+using Flexy.AssetRefs;
 
 namespace Flexy.Core.GameContexts
 {
@@ -194,17 +195,27 @@ namespace Flexy.Core.GameContexts
 
 			throw new InvalidOperationException( $"Service {typeof(T).Name} not found" );
 		}
-		public			T?				GetServiceOrNull<T>		( ) where T : class				
+		public			Boolean			TryGetService<T>		( [NotNullWhen(true)] out T? service ) where T : class	
 		{
 			if (_registeredServicesDict.TryGetValue(typeof(T), out var svc))
-				return svc as T;
+			{
+				service = (T)svc;
+				return true;
+			}
 
 			svc = _ext?.GetService<T>();
 
 			if (svc != null)
-				return (T)svc;
-
-			return _parent ? _parent!.GetServiceOrNull<T>() : null;
+			{
+				service = (T)svc;
+				return true;
+			}
+			
+			if (_parent != null)
+				return _parent.TryGetService(out service);
+				
+			service = null;
+			return false;
 		}
 		public			void			SetService<T>			( T service, Boolean replace = false )	where T : class	
 		{
