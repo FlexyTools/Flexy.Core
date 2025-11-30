@@ -472,9 +472,13 @@ namespace Flexy.Core.GameContexts
 	
 	public static class GameContextExt
 	{
-		public static T GetService<T>( this Component src )		where T:class => GameContext.GetCtx( src ).GetService<T>();
-		public static T GetService<T>( this GameObject src )	where T:class => GameContext.GetCtx( src ).GetService<T>();
-		public static T GetService<T>( this Scene src )			where T:class => GameContext.GetCtx( src ).GetService<T>();
+		public static T		GetService<T>( this Component src )			where T:class => GameContext.GetCtx( src ).GetService<T>();
+		public static T		GetService<T>( this GameObject src )		where T:class => GameContext.GetCtx( src ).GetService<T>();
+		public static T		GetService<T>( this Scene src )				where T:class => GameContext.GetCtx( src ).GetService<T>();
+		
+		public static T? 	GetServicePrNull<T>( this Component src )	where T:class => GameContext.GetCtx( src ).GetServiceOrNull<T>();
+		public static T? 	GetServicePrNull<T>( this GameObject src )	where T:class => GameContext.GetCtx( src ).GetServiceOrNull<T>();
+		public static T? 	GetServicePrNull<T>( this Scene src )		where T:class => GameContext.GetCtx( src ).GetServiceOrNull<T>();
 	}
 	
 	public enum EInitialization
