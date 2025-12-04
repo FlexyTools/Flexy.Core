@@ -451,6 +451,15 @@ namespace Flexy.Core.GameContexts
 				GUILayout.BeginHorizontal();
 				{
 					GUILayout.Label( $"{ctx.name}");
+					
+					if (ctx._parent != null)
+					{
+						var orig = GUI.color;
+						GUI.color = new Color(orig.r, orig.g, orig.b, 0.5f);
+						GUILayout.Label( $" :  {ctx._parent.name}");
+						GUI.color = orig;
+					}
+					
 					GUILayout.FlexibleSpace();
 					if (GUILayout.Button( "?" ))
 					   UnityEditor.EditorGUIUtility.PingObject(ctx);
