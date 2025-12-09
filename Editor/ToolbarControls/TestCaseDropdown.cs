@@ -33,11 +33,13 @@ public static class TestCaseDropdown
 		#endif
 		//EditorSceneManager.sceneClosed		+= s		=> EditorPrefs.SetString( Test_Selected, null );
 		EditorSceneManager.sceneOpened		+= (_, _)	=> PlayerPrefs.SetString( Test_Selected, null );
+		
+		Test_Selected = "Flexy.Core.TestCase: Selected" + Application.dataPath.Split('\\','/').Skip(1).TakeLast(3).Aggregate("+", (l, r) => l+"/"+r);
 	}
 	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 	static void CleanUpRun( ) => IsTestLaunched_InThisSession = default;
 
-	private const String	Test_Selected	= "Flexy.Core.TestCase: Selected";
+	private static String	Test_Selected;
 	public static Boolean	IsTestLaunched_InThisSession;
 	
 	private static List<TestRunSource> TestRunSources = new();
