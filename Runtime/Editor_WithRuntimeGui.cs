@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace Flexy.Core
 {
-    [CustomEditor( typeof(MonoBehaviour), true), CanEditMultipleObjects]
+    [CustomEditor( typeof(MonoBehaviour), true, isFallback = true), CanEditMultipleObjects]
     public class Editor_WithRuntimeGui : Editor 
     {
 	    protected	VisualElement	_root = null!;
