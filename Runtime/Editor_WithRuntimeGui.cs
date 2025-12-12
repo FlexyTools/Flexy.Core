@@ -11,25 +11,40 @@ namespace Flexy.Core
     {
 	    protected	VisualElement	_root = null!;
 	    
-	    protected virtual	Boolean	DoDrawDefaultInspector => true;
-	    
         public override VisualElement CreateInspectorGUI( )		
         {
-			_root = new VisualElement{ name = "FlexyContainer:Object Editor Root Element" } ;
-
-			FillRoot( );
+			_root = new VisualElement{ name = "Editor_WithRuntimeGui" } ;
+			
+			AddProperties();
+			AddIMGUIInspectorAndRuntimeOne();
 	        
 			return _root;
         }
         
-        protected			void	FillRoot			( )		
+        protected			void	AddProperties					( )								
         {
-	        if( DoDrawDefaultInspector )
-		        InspectorElement.FillDefaultInspector( _root, serializedObject, this );
-		
+	        InspectorElement.FillDefaultInspector(_root, serializedObject, this);
+        }
+        protected			void	AddPropertiesExcluding			( params String[] excludeList )	
+        {
+	        var enterChildren = true;
+	        var iterator = serializedObject.GetIterator();
+	        
+	        while (iterator.NextVisible(enterChildren))
+	        {
+		        enterChildren = false;
+
+		        if (((IList<String>)excludeList).Contains(iterator.name))
+			        continue;
+
+		        _root.Add( new PropertyField(iterator.Copy()) );
+	        }
+        }
+        protected			void	AddIMGUIInspectorAndRuntimeOne	( )								
+        {
 	        var ac = (Action)OnInspectorGUI;
 	        
-	        if( ac.Method.DeclaringType != typeof(Editor_WithRuntimeGui) )
+	        if (ac.Method.DeclaringType != typeof(Editor_WithRuntimeGui))
 		        _root.hierarchy.Add( new IMGUIContainer( DrawInspectorGUI ){ name = "FlexyContainer:On Inspector GUI" } );
 		        
 	        _root.hierarchy.Add( new IMGUIContainer( DrawRuntimeGui ){ name = "Flexy Runtime On Gui" } ); 
