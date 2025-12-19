@@ -48,8 +48,9 @@ namespace Flexy.Core.GameContexts
 		public			GameContext?	Parent					=> _parent;
 		public	IGameContextExtension?	Ext						=> _ext;
 
-		public			EInitialization	InitStatus				{ get; protected set; }
+		public			EInitStatus		InitStatus				{ get; protected set; }
 		public			Object?			InitializingService		{ get; protected set; }
+		public			String?			FailReason				{ get; protected set; }
 
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
 		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene );
@@ -244,9 +245,9 @@ namespace Flexy.Core.GameContexts
 			return result;
 		}
 
-		public async UniTask<EInitialization> WaitInitialization( )									
+		public async UniTask<EInitStatus> WaitInitialization	( )									
 		{
-			while (InitStatus == EInitialization.InProgress)
+			while (InitStatus == EInitStatus.InProgress)
 				await UniTask.Yield();
 			
 			return InitStatus;
@@ -262,7 +263,8 @@ namespace Flexy.Core.GameContexts
 				catch (Exception ex)	
 				{
 					Debug.LogException(ex);
-					InitStatus = EInitialization.Failed;
+					InitStatus = EInitStatus.Failed;
+					FailReason = $"Exception: {ex.Message}, InnerException: {ex.InnerException?.Message}";
 					break;
 				}
 			}
@@ -279,7 +281,8 @@ namespace Flexy.Core.GameContexts
 				catch ( Exception ex )	
 				{
 					Debug.LogException(ex);
-					InitStatus = EInitialization.Failed;
+					InitStatus = EInitStatus.Failed;
+					FailReason = $"Exception: {ex.Message}, InnerException: {ex.InnerException?.Message}";
 					break;
 				}
 			}
@@ -290,13 +293,13 @@ namespace Flexy.Core.GameContexts
 		{
 			InitializeServices(services);
 		
-			if (InitStatus == EInitialization.Failed) 
+			if (InitStatus == EInitStatus.Failed) 
 				return;
 			
 			await InitializeAsyncServices( asyncServices );
 			
-			if (InitStatus != EInitialization.Failed) 
-				InitStatus = EInitialization.Done;
+			if (InitStatus != EInitStatus.Failed) 
+				InitStatus = EInitStatus.Done;
 		}
 
 		private 		void			RegisterCtxServices		( )												
@@ -501,11 +504,11 @@ namespace Flexy.Core.GameContexts
 		public static Boolean 	TryGetService<T>( this Scene src,		[NotNullWhen(true)] out T? service )	where T:class => GameContext.GetCtx(src).TryGetService(out service);
 	}
 	
-	public enum EInitialization
+	public enum EInitStatus
 	{
-		InProgress = 0,
-		Failed = 1,
-		Done = 2,
+		InProgress	= 0,
+		Failed		= 1,
+		Done		= 2,
 	}
 	
 	public interface ICachedContext
