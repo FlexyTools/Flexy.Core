@@ -8,27 +8,8 @@ namespace Flexy.Core.Binding
 
 		private readonly	Dictionary<String, List<Binder>>	_attachedBinders	= new();
     
-		public		Boolean			ReadyForBind				
-		{
-			get => !_isBindUnready;
-			set => _isBindUnready = !value;
-		}
+		public		Boolean			ReadyForBind				=> !_isBindUnready;
 
-		public		void			AttachBinder				( Binder binder )	
-		{
-			if( !_attachedBinders.TryGetValue( binder.MemberName, out var list ) )
-				_attachedBinders.Add( binder.MemberName, ( list = new List<Binder>( ) ) );
-			
-			list.Remove( binder );
-			list.Add( binder );
-			
-		}
-		public		void			DetachBinder				( Binder binder )	
-		{
-			if( _attachedBinders.TryGetValue( binder.MemberName, out var list ) )
-				list.Remove( binder );
-		}
-	  
 		public		virtual void	MakeBindReadyAndRebindAll	( )					
 		{
 			_isBindUnready			= false;
@@ -57,7 +38,7 @@ namespace Flexy.Core.Binding
 			DoRebindProperty( name );
 		}
 		
-		private		void			DoRebindAllProperties		( params String[] excludeNames )
+		private		void			DoRebindAllProperties		( params String[] excludeNames )				
 		{
 			using var array = TempList<String>.Rent( _attachedBinders.Count );
 			
@@ -74,7 +55,7 @@ namespace Flexy.Core.Binding
 			}
 			catch ( Exception ex )	{ Debug.LogException( ex ); }
 		}
-		private		void			DoRebindProperty			( String name, params String[] excludeNames )		
+		private		void			DoRebindProperty			( String name, params String[] excludeNames )	
 		{
 			if( _attachedBinders == null || _attachedBinders.Count == 0 )
 				return;
@@ -139,7 +120,21 @@ namespace Flexy.Core.Binding
 			
 			//Profiler.EndSample( );
 		}
-		
+
+		void		IBindersNotifier.AttachBinder				( Binder binder )	
+		{
+			if( !_attachedBinders.TryGetValue( binder.MemberName, out var list ) )
+				_attachedBinders.Add( binder.MemberName, ( list = new List<Binder>( ) ) );
+			
+			list.Remove( binder );
+			list.Add( binder );
+			
+		}
+		void		IBindersNotifier.DetachBinder				( Binder binder )	
+		{
+			if( _attachedBinders.TryGetValue( binder.MemberName, out var list ) )
+				list.Remove( binder );
+		}		
 		
 		#if UNITY_EDITOR
 		[RuntimeInspectorGui]

@@ -41,12 +41,12 @@ namespace Flexy.Core.Editor.ToolbarControls
 			} ).Add( e );
 		}
 
-		internal static readonly VisualElement LeftPocket_Left	= new( ){ name = "Left Pocket - Left",		style = { flexGrow = 1, flexDirection = FlexDirection.Row } };
+		internal static readonly VisualElement LeftPocket_Left		= new( ){ name = "Left Pocket - Left",		style = { flexGrow = 1, flexDirection = FlexDirection.Row } };
 		internal static readonly VisualElement LeftPocket_Center	= new( ){ name = "Left Pocket - Center",	style = { flexGrow = 1, flexDirection = FlexDirection.Row } };
-		internal static readonly VisualElement LeftPocket_Right	= new( ){ name = "Left Pocket - Right",		style = { flexGrow = 1, flexDirection = FlexDirection.RowReverse } };
+		internal static readonly VisualElement LeftPocket_Right		= new( ){ name = "Left Pocket - Right",		style = { flexGrow = 1, flexDirection = FlexDirection.RowReverse } };
 		
-		internal static readonly VisualElement RightPocket_Left	= new( ){ name = "Right Pocket - Left",		style = { flexGrow = 1, flexDirection = FlexDirection.Row } };
-		internal static readonly VisualElement RightPocket_Center= new( ){ name = "Right Pocket - Center",	style = { flexGrow = 1, flexDirection = FlexDirection.Row } };
+		internal static readonly VisualElement RightPocket_Left		= new( ){ name = "Right Pocket - Left",		style = { flexGrow = 1, flexDirection = FlexDirection.Row } };
+		internal static readonly VisualElement RightPocket_Center	= new( ){ name = "Right Pocket - Center",	style = { flexGrow = 1, flexDirection = FlexDirection.Row } };
 		internal static readonly VisualElement RightPocket_Right	= new( ){ name = "Right Pocket - Right",	style = { flexGrow = 1, flexDirection = FlexDirection.RowReverse } };
 
 		private static ScriptableObject? _editorToolbarPanel;		

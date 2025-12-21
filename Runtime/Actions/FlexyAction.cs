@@ -11,13 +11,13 @@
 	public abstract class FlexyActionSync : FlexyAction
 	{
 		public abstract override	void		Do		( ActionCtx ctx );
-		public sealed override		UniTask		DoAsync	( ActionCtx ctx )	{ Do( ctx ); return UniTask.CompletedTask; }
+		public sealed override		UniTask		DoAsync	( ActionCtx ctx )	{ Do(ctx); return UniTask.CompletedTask; }
 	}
 	
 	[Serializable]
 	public abstract class FlexyActionAsync : FlexyAction
 	{
-		public sealed override		void		Do		( ActionCtx ctx )	=> this.GuardedDoAsync( ctx ).Forget( Debug.LogException );
+		public sealed override		void		Do		( ActionCtx ctx )	=> this.GuardedDoAsync(ctx).Forget();
 		public abstract override	UniTask		DoAsync	( ActionCtx ctx );
 	}
 
@@ -26,16 +26,16 @@
 	{
 		[SerializeReference] FlexyAction?	_action;
 		
-		public UniTask Raise( Component srcObject ) => _action.Raise( srcObject );
+		public UniTask Raise( Component srcObject ) => _action.Raise(srcObject);
 		
 		public event Action<ActionCtx> Raised	
 		{
 			add
 			{
-				if( _action is not FlexyActionCodeCallbacks cc )
+				if (_action is not FlexyActionCodeCallbacks cc)
 				{
-					cc = new( );
-					cc.SetNext( _action );
+					cc = new();
+					cc.SetNext(_action);
 					_action = cc;
 				}
 				
@@ -43,7 +43,7 @@
 			}
 			remove
 			{
-				if( _action is FlexyActionCodeCallbacks cc )
+				if (_action is FlexyActionCodeCallbacks cc)
 					cc.Raised -= value;
 			}
 		}
@@ -57,24 +57,24 @@
 		
 		public event Action<ActionCtx>		Raised	
 		{
-			add		=> ( _callbacks ??= new( ) ).Add( value );
-			remove	=> _callbacks?.Remove( value );
+			add		=> ( _callbacks ??= new() ).Add(value);
+			remove	=> _callbacks?.Remove(value);
 		}
 		
 		public override void	Do		( ActionCtx ctx )	
 		{
-			if( _callbacks is { Count: > 0 } )
+			if (_callbacks is { Count: > 0 })
 			{
-				using var tmpList = TempList<Action<ActionCtx>>.Rent( _callbacks );
+				using var tmpList = TempList<Action<ActionCtx>>.Rent(_callbacks);
 				
 				foreach ( var action in tmpList )
 				{
-					try						{ action.Invoke( ctx );		}
-					catch ( Exception ex )	{ Debug.LogException( ex );	}
+					try						{ action.Invoke(ctx);		}
+					catch ( Exception ex )	{ Debug.LogException(ex);	}
 				}
 			}
 			
-			_next?.Do( ctx );
+			_next?.Do(ctx);
 		}
 		public			void	SetNext	( FlexyAction? next ) => _next = next;
 	}
@@ -83,7 +83,7 @@
 	{
 		public static			UniTask	Raise			( this FlexyAction? action, Component srcObject )	
 		{
-			if( action == null )
+			if (action == null)
 				return UniTask.CompletedTask;
 			
 			return action.GuardedDoAsync( new ActionCtx{ SrcObject = srcObject } );
@@ -92,7 +92,7 @@
 		{
 			try
 			{
-				await action.DoAsync( ctx );
+				await action.DoAsync(ctx);
 			}
 			catch(Exception ex)
 			{

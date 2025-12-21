@@ -1,6 +1,6 @@
 ﻿namespace Flexy.Core.GameContexts
 {
-	public class ScriptableObjectServices : ServiceProvider
+	public class ServicesFrom_ScriptableObjects : ServiceProvider
 	{
 		[SerializeField] ScriptableObject[] Services = null!;
 		

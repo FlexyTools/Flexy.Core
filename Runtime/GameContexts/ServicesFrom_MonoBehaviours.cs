@@ -1,6 +1,6 @@
 ﻿namespace Flexy.Core.GameContexts
 {
-	public class MonoBehServices : ServiceProvider
+	public class ServicesFrom_MonoBehaviours : ServiceProvider
 	{
 		[SerializeField] MonoBehaviour[] _services = null!;
 			

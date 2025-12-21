@@ -9,8 +9,8 @@ namespace Flexy.Core.Binding
 
 		private Boolean		_isInitialized;
 
-		public	Component	Component	=> _source.Component;
-		public	String		MemberName	=> _source.MemberName;
+		internal	Component	Component	=> _source.Component;
+		internal	String		MemberName	=> _source.MemberName;
 
 		[ContextMenu ("Rebind")]
 		public                  void			Rebind			( )					
@@ -32,7 +32,7 @@ namespace Flexy.Core.Binding
 		{
 			if (_source.Component is IBindersNotifier notifier)
 			{
-				notifier.AttachBinder( this );
+				notifier.AttachBinder(this);
 
 				if (notifier.ReadyForBind)
 					SafeBind();
@@ -40,24 +40,22 @@ namespace Flexy.Core.Binding
 				return;
 			}
 
-			SafeBind ();
+			SafeBind();
 		}
 		protected	virtual		void			OnDisable		( )					
 		{
-			var target2 = _source.Component as IBindersNotifier;
-			if( target2 != null )
-				target2.DetachBinder( this );
+			if (_source.Component is IBindersNotifier target)
+				target.DetachBinder(this);
 		}
 		protected	virtual		void			OnDestroy		( )					
 		{
-			var target2 = _source.Component as IBindersNotifier;
-			if( target2 != null )
-				target2.DetachBinder( this );
+			if (_source.Component is IBindersNotifier target)
+				target.DetachBinder(this);
 		}
 
 		protected				void			Init<TArg>		( ref Action<TArg> action,	Boolean requereSetter = true )	
 		{
-			Init( ref action, ref _source, requereSetter );
+			Init	( ref action, ref _source, requereSetter );
 		}
 		protected				void			Init<TResult>	( ref Func<TResult> func,	Boolean requireGetter = true )	
 		{
@@ -211,7 +209,7 @@ namespace Flexy.Core.Binding
 
 		protected				void			ReportMissedTargetError		( Type targetType )	
 		{
-			Debug.Log( $"[{GetType().Name}] There is no target {targetType.Name}, binder path { GetHierarchyName(transform) }, binder is disabled", this );
+			Debug.LogWarning( $"[{GetType().Name}] There is no target {targetType.Name}, binder path { GetHierarchyName(transform) }, binder is disabled", this );
 			enabled = false;
 		}
 
