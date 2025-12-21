@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine.SceneManagement;
-using Flexy.AssetRefs;
 
 namespace Flexy.Core.GameContexts
 {
@@ -25,8 +24,10 @@ namespace Flexy.Core.GameContexts
 			SceneManager.sceneLoaded -= RegisterSideLoadedScene;
 			SceneManager.sceneLoaded += RegisterSideLoadedScene;
 
-			AssetsLoader.NewSceneCreatedAndLoadingStarted -= RegisterLoadedScene;
-			AssetsLoader.NewSceneCreatedAndLoadingStarted += RegisterLoadedScene;
+			#if FLEXY_ASSETREFS
+			AssetRefs.AssetsLoader.NewSceneCreatedAndLoadingStarted -= RegisterLoadedScene;
+			AssetRefs.AssetsLoader.NewSceneCreatedAndLoadingStarted += RegisterLoadedScene;
+			#endif
 		}
 
         [Header("Game Ctx")]

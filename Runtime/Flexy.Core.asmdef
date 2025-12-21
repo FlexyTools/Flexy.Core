@@ -26,14 +26,9 @@
             "define": "UNITY_SERVICES_CORE"
         },
         {
-            "name": "com.annulusgames.lit-motion",
-            "expression": "1.8",
-            "define": "LIT_MOTION_PACKAGE"
-        },
-        {
-            "name": "jp.hadashikick.vcontainer",
-            "expression": "1",
-            "define": "VCONTAINER_PACKAGE"
+            "name": "fun.flexy.assetrefs",
+            "expression": "5",
+            "define": "FLEXY_ASSETREFS"
         }
     ],
     "noEngineReferences": false
