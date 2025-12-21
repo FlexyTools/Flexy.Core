@@ -50,6 +50,19 @@ Small set of very often and common used utilities
 - C# 10
 - Fast Enter Play Mode support
 
+
+### Install
+
+Open Unity Package Manager   
+Add package from git URL: https://github.com/FlexyTools/Flexy.Core.git
+
+
+### Issues and Discussions
+
+Please file any issues with documentation or packages in the [Flexy.Docs](https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.GameSettings/Readme.md) repo
+
+### Have Fun :)
+
 <br/>
 
 [Flexy.Tools](https://github.com/FlexyTools/Flexy.Docs/tree/main) / [Framework](https://github.com/FlexyTools/Flexy.Docs/tree/main/Framework) / Flexy.Core
