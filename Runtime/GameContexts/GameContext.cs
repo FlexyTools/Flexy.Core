@@ -5,6 +5,8 @@ using UnityEngine.SceneManagement;
 
 namespace Flexy.Core.GameContexts
 {
+	[HelpURL("https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.Core/ScriptingApi/GameContext.md")]
+
 	[DefaultExecutionOrder(Int16.MinValue+200)]
 	public class GameContext : MonoBehaviour
 	{

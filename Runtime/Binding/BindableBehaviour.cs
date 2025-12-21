@@ -2,6 +2,8 @@ using System.Linq;
 
 namespace Flexy.Core.Binding
 {
+	[HelpURL("https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.Core/ScriptingApi/BindableBehaviour.md")]
+
 	public abstract class BindableBehaviour : MonoBehaviour, IBindersNotifier
 	{
 		protected	Boolean			_isBindUnready;

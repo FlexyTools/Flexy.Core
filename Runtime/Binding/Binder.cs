@@ -2,6 +2,8 @@
 
 namespace Flexy.Core.Binding
 {
+	[HelpURL("https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.Core/ScriptingApi/Binder.md")]
+
 	public abstract class Binder : MonoBehaviour
 	{
 		[BindTo(typeof(void))]
