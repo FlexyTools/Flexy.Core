@@ -2,8 +2,8 @@
     "name": "Flexy.Core.Editor",
     "rootNamespace": "Flexy.Core",
     "references": [
-        "GUID:8f8cd9da846c03a4e94c08df4d8e4e10",
-        "GUID:529b74b51f9df9847a64e490b76761e8"
+        "Flexy.Core",
+        "Flexy.AssetRefs"
     ],
     "includePlatforms": [
         "Editor"
