@@ -5,7 +5,7 @@
 
 # Flexy.Core
 
-Core package of **Flexy Framework** that every other package depends on  
+Core package of **Flexy.Framework** that every other package depends on  
 It is Glue fo Flexy.Framework and based on [Flexy.Briks\ToYs](https://github.com/FlexyTools/Flexy.Docs/blob/main/Flexy.Bricks-ToYs) architecture 
 
 [Github](https://github.com/FlexyTools/Flexy.Core)
