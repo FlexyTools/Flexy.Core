@@ -17,18 +17,18 @@ namespace Flexy.Core.GameContexts
 		}
 		[RuntimeStaticInit]		static void StaticInit	( )	
 		{
-			SceneManager.sceneUnloaded -= ClearSceneRegistration;
-			SceneManager.sceneUnloaded += ClearSceneRegistration;
+			SceneManager.sceneUnloaded -= ClearSceneLink;
+			SceneManager.sceneUnloaded += ClearSceneLink;
 
-			SceneManager.activeSceneChanged -= RegisterCreatedScene;
-			SceneManager.activeSceneChanged += RegisterCreatedScene;
+			SceneManager.activeSceneChanged -= LinkCreatedScene;
+			SceneManager.activeSceneChanged += LinkCreatedScene;
 
-			SceneManager.sceneLoaded -= RegisterSideLoadedScene;
-			SceneManager.sceneLoaded += RegisterSideLoadedScene;
+			SceneManager.sceneLoaded -= LinkSideLoadedScene;
+			SceneManager.sceneLoaded += LinkSideLoadedScene;
 
 			#if FLEXY_ASSETREFS
-			AssetRefs.AssetsLoader.NewSceneCreatedAndLoadingStarted -= RegisterLoadedScene;
-			AssetRefs.AssetsLoader.NewSceneCreatedAndLoadingStarted += RegisterLoadedScene;
+			AssetRefs.AssetsLoader.NewSceneCreatedAndLoadingStarted -= LinkLoadedScene;
+			AssetRefs.AssetsLoader.NewSceneCreatedAndLoadingStarted += LinkLoadedScene;
 			#endif
 		}
 
@@ -352,12 +352,12 @@ namespace Flexy.Core.GameContexts
 
 			return ctx;
 		}
-		private static 	void			ClearSceneRegistration	( Scene scene )									
+		private static 	void			ClearSceneLink			( Scene scene )									
 		{
 			Debug.Log( $"{Time.frameCount} [GameCtx] ClearSceneRegistration {scene.name}" );
 			_sceneToCtxLinks.Remove(scene);
 		}
-		private static 	void			RegisterCreatedScene	( Scene oldScene, Scene newScene )				
+		private static 	void			LinkCreatedScene		( Scene oldScene, Scene newScene )				
 		{
 			if (_sceneToCtxLinks.ContainsKey(oldScene) && !_sceneToCtxLinks.ContainsKey(newScene))
             {
@@ -366,17 +366,22 @@ namespace Flexy.Core.GameContexts
 				ctx.LinkScene(newScene);
 			}
 		}
-		private static 	void			RegisterSideLoadedScene	( Scene newScene, LoadSceneMode loadSceneMode )	
+		private static 	void			LinkSideLoadedScene		( Scene newScene, LoadSceneMode loadSceneMode )	
 		{
 			if (!_sceneToCtxLinks.ContainsKey(newScene))
 			{
 				var scene	= SceneManager.GetActiveScene();
-				var ctx		= _sceneToCtxLinks[scene];
+				if (!_sceneToCtxLinks.TryGetValue(scene, out var ctx))
+				{
+					ctx = Global;
+					Debug.LogWarning( $"{Time.frameCount} [GameCtx] Register Side loaded scene: active scene {scene.name} not connected to Ctx!" );
+				}
+				
 				Debug.Log( $"{Time.frameCount} [GameCtx] {ctx.name} - Register Side loaded scene: {newScene.name}" );
 				ctx.LinkScene(newScene);
 			}
 		}
-		private static 	void			RegisterLoadedScene		( Scene ctx, Scene newScene )					
+		private static 	void			LinkLoadedScene			( Scene ctx, Scene newScene )					
 		{
 			GetCtx( ctx ).LinkScene( newScene );
 		}

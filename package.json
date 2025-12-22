@@ -4,6 +4,7 @@
   "version": "6.0.0",
   "unity": "2022.3",
   "description": "Core package of Flexy.Framework that every other package depends on. It is Glue fo Flexy.Framework and based on Flexy.Briks\"ToYs architecture",
+  "documentationUrl": "https://github.com/FlexyTools/Flexy.Docs/tree/main/Framework/Flexy.Core",
   "keywords": [
     "Utils", "DI", "Context", "Services", "Service Provider", "Binding", "Event", "Action", "Random", "Noise"
   ],
