@@ -119,13 +119,10 @@ namespace Flexy.Core.GameContexts
 
 			RegisterCtxServices();
 			
-			if (_registeredServicesList.Count > 0)
-			{
-				var services				= _registeredServicesList.OfType<IService>()		.OrderBy( s => s.Order ).ToArray();
-				var asyncServices			= _registeredServicesList.OfType<IServiceAsync>()	.OrderBy( s => s.Order ).ToArray();
-				
-				RunServiceInitialisation(services, asyncServices).Forget(Debug.LogException);
-			}
+			var services				= _registeredServicesList.OfType<IService>()		.OrderBy( s => s.Order ).ToArray();
+			var asyncServices			= _registeredServicesList.OfType<IServiceAsync>()	.OrderBy( s => s.Order ).ToArray();
+			
+			RunServiceInitialisation(services, asyncServices).Forget();
 		}
 		protected		void			OnDestroy				( )		
 		{
@@ -307,6 +304,7 @@ namespace Flexy.Core.GameContexts
 		private 		void			RegisterCtxServices		( )												
 		{
 			_registeredServicesDict.Add(typeof(GameContext), this);
+			_registeredServicesList.Add(this);
 		
 			if (GetType() != typeof(GameContext))
 				_registeredServicesDict.Add(GetType(), this);
