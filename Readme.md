@@ -8,9 +8,9 @@
 Core package of **Flexy.Framework** that every other package depends on  
 It is Glue fo Flexy.Framework and based on [Flexy.Briks\ToYs](https://github.com/FlexyTools/Flexy.Docs/blob/main/Flexy.Bricks-ToYs) architecture 
 
-[Scripting Api](https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.Core/ScriptingApi/Readme.md)
-<!--| [Unity Forum](https://discussions.unity.com/t/flexy-gamesettings-free-easily-store-game-settings-with-just-one-line-per-setting/1700923)
-| [AssetStore](https://u3d.as/3LKx)  
+[Docs](https://github.com/FlexyTools/Flexy.Docs/blob/main/Framework/Flexy.Core/Readme.md)
+| [Unity Forum](https://discussions.unity.com/t/a/1701330)
+<!--| [AssetStore](https://u3d.as/3LKx)  
 | [Showcase(Template project)](../../GameTemplates/Barley-Breaks/Readme.md) 
 -->
 
