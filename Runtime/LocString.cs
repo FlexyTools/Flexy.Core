@@ -1,11 +1,11 @@
-﻿using System.Linq;
+using System.Linq;
 
 namespace Flexy.Core;
 
 [Serializable]
 public struct LocString
 {
-	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] 
+	[Static(Clear)] 
 	static void	StaticClear ( )	
 	{
 		LocService = null;	

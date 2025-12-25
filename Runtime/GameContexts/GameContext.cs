@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine.SceneManagement;
@@ -10,14 +10,12 @@ namespace Flexy.Core.GameContexts
 	[DefaultExecutionOrder(Int16.MinValue+200)]
 	public class GameContext : MonoBehaviour
 	{
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]	
-		static void StaticClear	( )	
+		[Static(Clear)]		static void StaticClear	( )	
 		{
 			_global = null!;
 			_sceneToCtxLinks.Clear();
 		}
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-		static void StaticInit	( )	
+		[Static(Init)]		static void StaticInit	( )	
 		{
 			SceneManager.sceneUnloaded -= ClearSceneLink;
 			SceneManager.sceneUnloaded += ClearSceneLink;
