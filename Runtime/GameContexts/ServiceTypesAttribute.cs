@@ -2,11 +2,13 @@
 {
 	public class ServiceTypesAttribute: Attribute
 	{
-		public ServiceTypesAttribute ( params Type[] interfaceType )
+		public ServiceTypesAttribute ( Type firstInterfaceType, params Type[] additionalTypes )
 		{
-			InterfaceType = interfaceType;
+			InterfaceType = new List<Type>(1+additionalTypes.Length) { firstInterfaceType };
+			InterfaceType.AddRange(additionalTypes);
 		}
 		
-		public readonly Type[] InterfaceType;
+		public Boolean SkipImplementation = false;
+		public readonly List<Type> InterfaceType;
 	}
 }

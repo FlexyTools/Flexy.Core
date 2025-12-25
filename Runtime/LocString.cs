@@ -5,7 +5,7 @@ namespace Flexy.Core;
 [Serializable]
 public struct LocString
 {
-	[RuntimeStaticClear] 
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] 
 	static void	StaticClear ( )	
 	{
 		LocService = null;	

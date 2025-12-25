@@ -10,12 +10,14 @@ namespace Flexy.Core.GameContexts
 	[DefaultExecutionOrder(Int16.MinValue+200)]
 	public class GameContext : MonoBehaviour
 	{
-		[RuntimeStaticClear]	static void StaticClear	( )	
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]	
+		static void StaticClear	( )	
 		{
 			_global = null!;
 			_sceneToCtxLinks.Clear();
 		}
-		[RuntimeStaticInit]		static void StaticInit	( )	
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+		static void StaticInit	( )	
 		{
 			SceneManager.sceneUnloaded -= ClearSceneLink;
 			SceneManager.sceneUnloaded += ClearSceneLink;
@@ -189,40 +191,47 @@ namespace Flexy.Core.GameContexts
 			if (service == null)
 				return;
 
-			var typeActual	= service.GetType();
+			var typeActual		= service.GetType();
+			var serviceTypes	= typeActual.GetCustomAttribute<ServiceTypesAttribute>(); 
 
-			Debug.Log	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(typeActual)}" );
-			try 
+			if (serviceTypes is not { SkipImplementation: true })
 			{
-				if (replace)	_registeredServicesDict[typeActual] = service;
-				else			_registeredServicesDict.Add(typeActual, service); 
+				Debug.Log	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(typeActual)}" );
+				try 
+				{
+					if (replace)	_registeredServicesDict[typeActual] = service;
+					else			_registeredServicesDict.Add(typeActual, service); 
+				}
+				catch ( Exception ex ) { Debug.LogException(ex); }
+				
+				try { _ext?.SetService(typeActual, service, replace); }
+				catch ( Exception ex ) { Debug.LogException(ex); }
 			}
-			catch ( Exception ex ) { Debug.LogException(ex); }
 
 			if (!_registeredServicesList.Contains(service))
 				_registeredServicesList.Add(service);
 
-			try { _ext?.SetService(typeActual, service, replace); }
-			catch ( Exception ex ) { Debug.LogException(ex); }
-
-			if (typeActual.GetCustomAttribute<ServiceTypesAttribute>() is {} si)
+			if (serviceTypes == null) 
+				return;
+			
+			foreach (var serviceType in serviceTypes.InterfaceType)
 			{
-				foreach (var serviceType in si.InterfaceType)
+				if (!serviceType.IsAssignableFrom(typeActual))
 				{
-					if (!serviceType.IsAssignableFrom(typeActual))
-						continue;
-
-					Debug.Log	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(serviceType)} => {GetDisplayServiceName(typeActual)}" );
-					try 
-					{
-						if (replace)	_registeredServicesDict[serviceType] = service;
-						else			_registeredServicesDict.Add(serviceType, service);
-					}
-					catch ( Exception ex ) { Debug.LogException(ex); }
-					
-					try { _ext?.SetService(serviceType, service, replace); }
-					catch ( Exception ex ) { Debug.LogException(ex); }
+					Debug.LogError	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(serviceType)} is not implemented by {GetDisplayServiceName(typeActual)}" );
+					continue;
 				}
+
+				Debug.Log	( $"[GameCtx] {name} - SetService: {GetDisplayServiceName(serviceType)} => {GetDisplayServiceName(typeActual)}" );
+				try 
+				{
+					if (replace)	_registeredServicesDict[serviceType] = service;
+					else			_registeredServicesDict.Add(serviceType, service);
+				}
+				catch ( Exception ex ) { Debug.LogException(ex); }
+				
+				try { _ext?.SetService(serviceType, service, replace); }
+				catch ( Exception ex ) { Debug.LogException(ex); }
 			}
 		}
 		public static	String			GetDisplayServiceName	( Type svcType )										
