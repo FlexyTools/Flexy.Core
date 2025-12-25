@@ -10,12 +10,12 @@ namespace Flexy.Core.GameContexts
 	[DefaultExecutionOrder(Int16.MinValue+200)]
 	public class GameContext : MonoBehaviour
 	{
-		[RuntimeStaticClear]	static void StaticClear	( )	
+		[Static(Clear)]		static void StaticClear	( )	
 		{
 			_global = null!;
 			_sceneToCtxLinks.Clear();
 		}
-		[RuntimeStaticInit]		static void StaticInit	( )	
+		[Static(Init)]		static void StaticInit	( )	
 		{
 			SceneManager.sceneUnloaded -= ClearSceneLink;
 			SceneManager.sceneUnloaded += ClearSceneLink;

@@ -7,4 +7,7 @@ global using UnityEngine;
 global using Flexy.Core.Extensions;
 global using Flexy.Core.GameContexts;
 
-global using Object		= System.Object;
+global using Object				= System.Object;
+global using StaticAttribute	= UnityEngine.RuntimeInitializeOnLoadMethodAttribute;
+
+global using static Flexy.Core.RuntimeInit;
