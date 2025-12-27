@@ -258,6 +258,17 @@ namespace Flexy.Core.GameContexts
 			
 			return InitStatus;
 		}
+		public static async	UniTask 	RegisterSceneWhenItReady( Int32 scenesCountBeforeLoad, Component context )	
+		{
+			// Wait scene loading start and register in GameContext
+			// Dont use this method if load using SceneRef.LoadSceneAsync or AssetLoader directly
+				
+			while (scenesCountBeforeLoad == SceneManager.sceneCount)
+				await UniTask.NextFrame();
+
+			var scene = SceneManager.GetSceneAt(SceneManager.sceneCount-1);
+			context.GetService<GameContext>().LinkScene(scene);
+		}
 		protected virtual 		void	InitializeServices		( IService[] services )				
 		{
 			foreach (var service in services)
