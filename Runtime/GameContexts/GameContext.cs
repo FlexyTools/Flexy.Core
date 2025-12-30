@@ -27,8 +27,8 @@ namespace Flexy.Core.GameContexts
 			SceneManager.sceneLoaded += LinkSideLoadedScene;
 
 			#if FLEXY_ASSETREFS
-			AssetRefs.AssetsLoader.NewSceneCreatedAndLoadingStarted -= LinkLoadedScene;
-			AssetRefs.AssetsLoader.NewSceneCreatedAndLoadingStarted += LinkLoadedScene;
+			AssetRefs.LoadSceneTask.NewLoadSceneTaskStarted -= LinkLoadedScene;
+			AssetRefs.LoadSceneTask.NewLoadSceneTaskStarted += LinkLoadedScene;
 			#endif
 		}
 
@@ -371,7 +371,7 @@ namespace Flexy.Core.GameContexts
 		}
 		private static 	void			ClearSceneLink			( Scene scene )									
 		{
-			Debug.Log( $"{Time.frameCount} [GameCtx] ClearSceneRegistration {scene.name}" );
+			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] ClearSceneRegistration {scene.name}" );
 			_sceneToCtxLinks.Remove(scene);
 		}
 		private static 	void			LinkCreatedScene		( Scene oldScene, Scene newScene )				
@@ -379,7 +379,7 @@ namespace Flexy.Core.GameContexts
 			if (_sceneToCtxLinks.ContainsKey(oldScene) && !_sceneToCtxLinks.ContainsKey(newScene))
             {
 				var ctx = _sceneToCtxLinks[oldScene];
-				Debug.Log( $"{Time.frameCount} [GameCtx] {ctx.name} - Register created scene: {newScene.name}" );
+				Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {ctx.name} - Register created scene: {newScene.name}" );
 				ctx.LinkScene(newScene);
 			}
 		}
@@ -391,17 +391,19 @@ namespace Flexy.Core.GameContexts
 				if (!_sceneToCtxLinks.TryGetValue(scene, out var ctx))
 				{
 					ctx = Global;
-					Debug.LogWarning( $"{Time.frameCount} [GameCtx] Register Side loaded scene: active scene {scene.name} not connected to Ctx!" );
+					Debug.LogWarning( $"[GameCtx] [Frame:{Time.frameCount}] Register Side loaded scene: active scene {scene.name} not connected to Ctx!" );
 				}
 				
-				Debug.Log( $"{Time.frameCount} [GameCtx] {ctx.name} - Register Side loaded scene: {newScene.name}" );
+				Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {ctx.name} - Register Side loaded scene: {newScene.name}" );
 				ctx.LinkScene(newScene);
 			}
 		}
-		private static 	void			LinkLoadedScene			( Scene ctx, Scene newScene )					
+		#if FLEXY_ASSETREFS
+		private static 	void			LinkLoadedScene			( AssetRefs.LoadSceneTask loadSceneTask )		
 		{
-			GetCtx( ctx ).LinkScene( newScene );
+			GetCtx( loadSceneTask.Context ).LinkScene( loadSceneTask.Scene );
 		}
+		#endif
 
 		public enum ELinkCtxTo: Byte
 		{
