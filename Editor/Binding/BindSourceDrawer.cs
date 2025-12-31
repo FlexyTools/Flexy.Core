@@ -260,61 +260,69 @@ public class BindSourceDrawer : PropertyDrawer
 
 					var paramType = @params[0].ParameterType;
 						
-					if (paramType == typeof(String))
+					try
 					{
-						EditorGUI.BeginChangeCheck();
-						var val  	= EditorGUILayout.TextField ( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue );
-							
-						if (EditorGUI.EndChangeCheck())
-							paramsProp.stringValue = val;
-					}
 						
-					else if (paramType == typeof(Single))
-					{
-						EditorGUI.BeginChangeCheck();
-						var val  	= EditorGUILayout.FloatField( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0.0f : Single.Parse( paramsProp.stringValue ) ).ToString(CultureInfo.InvariantCulture );
+						if (paramType == typeof(String))
+						{
+							EditorGUI.BeginChangeCheck();
+							var val  	= EditorGUILayout.TextField ( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue );
+								
+							if (EditorGUI.EndChangeCheck())
+								paramsProp.stringValue = val;
+						}
 							
-						if (EditorGUI.EndChangeCheck())
-							paramsProp.stringValue = val;
-					}
-				
-					else if (paramType == typeof(Boolean))
-					{
-						EditorGUI.BeginChangeCheck();
-						var val  	= EditorGUILayout.Toggle( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue != "" && Boolean.Parse( paramsProp.stringValue ) ).ToString( );
-							
-						if (EditorGUI.EndChangeCheck())
-							paramsProp.stringValue = val;
-					}
+						else if (paramType == typeof(Single))
+						{
+							EditorGUI.BeginChangeCheck();
+							var val  	= EditorGUILayout.FloatField( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0.0f : Single.Parse( paramsProp.stringValue ) ).ToString(CultureInfo.InvariantCulture );
+								
+							if (EditorGUI.EndChangeCheck())
+								paramsProp.stringValue = val;
+						}
+					
+						else if (paramType == typeof(Boolean))
+						{
+							EditorGUI.BeginChangeCheck();
+							var val  	= EditorGUILayout.Toggle( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue != "" && Boolean.Parse( paramsProp.stringValue ) ).ToString( );
+								
+							if (EditorGUI.EndChangeCheck())
+								paramsProp.stringValue = val;
+						}
 
-					else if (paramType.IsEnum)
-					{
-						EditorGUI.BeginChangeCheck();
-						var type	= paramType;
-						var val  	= Convert.ToInt32( EditorGUILayout.EnumPopup( ObjectNames.NicifyVariableName( type.Name ), (Enum)Enum.Parse( type, String.IsNullOrEmpty( paramsProp.stringValue ) ? Enum.GetNames(type)[0] : paramsProp.stringValue ) ) ).ToString( );
-							
-						if (EditorGUI.EndChangeCheck())
-							paramsProp.stringValue = val;
-					}
+						else if (paramType.IsEnum)
+						{
+							EditorGUI.BeginChangeCheck();
+							var type	= paramType;
+							var val  	= Convert.ToInt32( EditorGUILayout.EnumPopup( ObjectNames.NicifyVariableName( type.Name ), (Enum)Enum.Parse( type, String.IsNullOrEmpty( paramsProp.stringValue ) ? Enum.GetNames(type)[0] : paramsProp.stringValue ) ) ).ToString( );
+								
+							if (EditorGUI.EndChangeCheck())
+								paramsProp.stringValue = val;
+						}
 
-					else if (paramType == typeof(Int32))
-					{
-						EditorGUI.BeginChangeCheck();
-						var val  	= EditorGUILayout.IntField  ( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0 : Int32.Parse( paramsProp.stringValue ) ).ToString( );
+						else if (paramType == typeof(Int32))
+						{
+							EditorGUI.BeginChangeCheck();
+							var val  	= EditorGUILayout.IntField  ( ObjectNames.NicifyVariableName( @params[0].Name ), paramsProp.stringValue == "" ? 0 : Int32.Parse( paramsProp.stringValue ) ).ToString( );
+								
+							if (EditorGUI.EndChangeCheck())
+								paramsProp.stringValue = val;
+						}
 							
-						if (EditorGUI.EndChangeCheck())
-							paramsProp.stringValue = val;
-					}
-						
-					else if (paramType == typeof(GameObject))
-					{
-						EditorGUILayout.HelpBox( $"Method arameter '{@params[0].ParameterType.Name} {@params[0].Name}' is automatically provided from this GO", MessageType.Info );
-						paramsProp.stringValue = "";
-					}
+						else if (paramType == typeof(GameObject))
+						{
+							EditorGUILayout.HelpBox( $"Method arameter '{@params[0].ParameterType.Name} {@params[0].Name}' is automatically provided from this GO", MessageType.Info );
+							paramsProp.stringValue = "";
+						}
 
-					else
+						else
+						{
+							EditorGUILayout.HelpBox( "Method arameter type '"+ @params[0].ParameterType +"' is unsupported", MessageType.Error );
+							paramsProp.stringValue = "";
+						}
+					}
+					catch (FormatException fe)
 					{
-						EditorGUILayout.HelpBox( "Method arameter type '"+ @params[0].ParameterType +"' is unsupported", MessageType.Error );
 						paramsProp.stringValue = "";
 					}
 				}

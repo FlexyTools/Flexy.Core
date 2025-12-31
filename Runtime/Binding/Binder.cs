@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Globalization;
+using System.Reflection;
 
 namespace Flexy.Core.Binding
 {
@@ -284,28 +285,28 @@ namespace Flexy.Core.Binding
 				
 					if (paramType == typeof(String))
 					{
-						return CreateGetDelegate<String, TResult>( target, method, parameters );
+						return CreateGetDelegate<String, TResult>(target, method, parameters);
 					}
 					
 					if (paramType == typeof(Int32))
 					{
 						var result = 0;
-						if( Int32.TryParse ( parameters, out result ) )
-							return CreateGetDelegate<Int32, TResult>( target, method, result );
+						if (String.IsNullOrWhiteSpace(parameters) || Int32.TryParse(parameters, out result))
+							return CreateGetDelegate<Int32, TResult>(target, method, result);
 					}
 					
 					if (paramType == typeof(Single))
 					{
 						var result = 0.0f;
-						if( Single.TryParse ( parameters, out result ) )
-							return CreateGetDelegate<Single, TResult>( target, method, result );
+						if (String.IsNullOrWhiteSpace(parameters) || Single.TryParse(parameters,  NumberStyles.Any, CultureInfo.InvariantCulture, out result))
+							return CreateGetDelegate<Single, TResult>(target, method, result);
 					}
 					
 					if (paramType == typeof(Boolean))
 					{
 						var result = false;
-						if( Boolean.TryParse ( parameters, out result ) )
-							return CreateGetDelegate<Boolean, TResult>( target, method, result );
+						if (String.IsNullOrWhiteSpace(parameters) || Boolean.TryParse(parameters, out result))
+							return CreateGetDelegate<Boolean, TResult>(target, method, result);
 					}
 				
 					if (paramType == typeof(GameObject))
@@ -318,13 +319,15 @@ namespace Flexy.Core.Binding
 						var enumType	= paramType;
 						var intType		= Enum.GetUnderlyingType( enumType );
 					
-						if( intType == typeof(Byte) )
-							return CreateGetDelegate<Byte, TResult>( target, method, Byte.Parse( parameters ) );
+						Int32.TryParse(parameters, out var result);
+					
+						if (intType == typeof(Byte))
+							return CreateGetDelegate<Byte, TResult>( target, method, (Byte)result );
 
-						if( intType == typeof(Int16) )
-							return CreateGetDelegate<Int16, TResult>( target, method, Int16.Parse( parameters ) );
+						if (intType == typeof(Int16))
+							return CreateGetDelegate<Int16, TResult>( target, method, (Int16)result );
 
-						return CreateGetDelegate<Int32, TResult>( target, method, Int32.Parse( parameters ) );
+						return CreateGetDelegate<Int32, TResult>( target, method, result );
 					}
 
 					break;
