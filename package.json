@@ -1,17 +1,18 @@
 {
   "name": "fun.flexy.core",
   "displayName": "Flexy Core",
-  "version": "6.0.4",
+  "version": "6.0.5",
   "unity": "2022.3",
   "description": "Core package of Flexy.Framework that every other package depends on. It is Glue fo Flexy.Framework and based on Flexy.Briks\"ToYs architecture",
   "documentationUrl": "https://github.com/FlexyTools/Flexy.Docs/tree/main/Framework/Flexy.Core",
+  "licensesUrl": "LICENSE.md",
   "keywords": [
     "Utils", "DI", "Context", "Services", "Service Provider", "Binding", "Event", "Action", "Random", "Noise"
   ],
   "category": "Tools/Utilities",
   "author": {
     "name": "Flexy Tools",
-    "email" : "JesObertyukh@gmail.com",
+    "email" : "support@flexy.fun",
     "url" : "https://github.com/FlexyTools/Flexy.Core"
   },
   "dependencies": {  }
