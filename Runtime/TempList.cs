@@ -52,7 +52,12 @@ public struct TempList<T> : IDisposable
 	public void Dispose	( )
 	{
 		if( _array != null )
+		{
+			for (var i = 0; i < _array.Length; i++)
+				_array[i] = default!;
+				
 			ArrayPool<T>.Shared.Return( _array );
+		}
 					
 		_array = null!;
 	}
