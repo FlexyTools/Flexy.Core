@@ -17,37 +17,43 @@ public class Preferences : SettingsProvider
 
 	public override	void	OnActivate	( String searchContext, VisualElement root )	
 	{
-		AddBinders(searchContext, root);
+		root.Add( new Label("Flexy.Core"){ style = { marginLeft = 4, marginTop = 2.4f, marginRight = 4, marginBottom = 2.4f, paddingLeft = 2.4f, paddingRight = 2.4f, paddingBottom = 2.4f, fontSize = 19, unityFontStyleAndWeight = FontStyle.Bold}} );
+		
+		var scroll = new ScrollView { style = { paddingLeft = 10, paddingTop = 2 } };
+		root.Add(scroll);
+		
+		AddBinders(searchContext, scroll);
 		#if !UNITY_6000_3_OR_NEWER
-		AddToolbar(searchContext, root);
+		AddToolbar(searchContext, scroll);
 		#endif
 	}
 
 	private			void	AddBinders	( String searchContext, VisualElement root )	
 	{
-		var label = new Label("Binders"){ style = { paddingLeft = 10, paddingTop = 6, marginBottom = 5, fontSize = 19, unityFontStyleAndWeight = FontStyle.Bold}};
+		var label = new Label("Binders"){ style = { paddingTop = 6, marginBottom = 5, fontSize = 14, unityFontStyleAndWeight = FontStyle.Bold}};
 		root.Add(label);
-		
-		var scroll = new ScrollView { style = { paddingLeft = 10, paddingTop = 6 } };
-		root.Add(scroll);
 
 		var toggle = new Toggle { style = { flexGrow = 1 } };
-		scroll.Add(toggle);
+		root.Add(toggle);
 
 		toggle.text = "Allow bind to any member";
 		toggle.value = EditorPrefs.GetBool(BindSourceDrawer.AllowBindToAnyMemberKey, false);
 		toggle.RegisterValueChangedCallback(ev => EditorPrefs.SetBool(BindSourceDrawer.AllowBindToAnyMemberKey, ev.newValue));
+		
+		toggle = new Toggle { style = { flexGrow = 1 } };
+		root.Add(toggle);
+		
+		toggle.text = "Allow bind to non public members";
+		toggle.value = EditorPrefs.GetBool(BindSourceDrawer.AllowBindToNonPublicKey, false);
+		toggle.RegisterValueChangedCallback(ev => EditorPrefs.SetBool(BindSourceDrawer.AllowBindToNonPublicKey, ev.newValue));
 	}
 	
 	#if !UNITY_6000_3_OR_NEWER
 	private			void	AddToolbar	( String searchContext, VisualElement root )	
 	{
-		var label = new Label("Unity Toolbar"){ style = { paddingLeft = 10, paddingTop = 6, marginBottom = 5, marginTop = 15, fontSize = 19, unityFontStyleAndWeight = FontStyle.Bold}};
+		var label = new Label("Unity Toolbar"){ style = { paddingTop = 6, marginBottom = 5, marginTop = 15, fontSize = 14, unityFontStyleAndWeight = FontStyle.Bold}};
 		root.Add(label);
-			
-		var scroll = new ScrollView { style = { paddingLeft = 10, paddingTop = 6 } };
-		root.Add(scroll);
-
+		
 		foreach (var container in GetPredefinedContainers())
 		{
 			var groupName = container.name;
@@ -73,7 +79,7 @@ public class Preferences : SettingsProvider
 			listView.itemIndexChanged += (_, _) => SaveGroup(container);
 
 			groupBox.Add(listView);
-			scroll.Add(groupBox);
+			root.Add(groupBox);
 		}
 
 		return;

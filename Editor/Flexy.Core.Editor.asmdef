@@ -2,7 +2,9 @@
     "name": "Flexy.Core.Editor",
     "rootNamespace": "Flexy.Core",
     "references": [
-        "Flexy.Core",
+        "UniTask",
+		"UniTaskEmbed",
+		"Flexy.Core",
         "Flexy.AssetRefs"
     ],
     "includePlatforms": [

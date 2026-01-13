@@ -6,17 +6,17 @@ using System.Reflection;
 using Flexy.Core.Binding;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Binder = Flexy.Core.Binding.Binder;
-using Label = UnityEngine.UIElements.Label;
-using Object = System.Object;
+using Object = UnityEngine.Object;
 
 namespace Flexy.Core.Editor.Binding;
 
 [CustomPropertyDrawer(typeof(Binder.BindSource), true)]
 public class BindSourceDrawer : PropertyDrawer
 {
-	internal const	String	AllowBindToAnyMemberKey	= $"Flexy/Core/Binders/AllowBindToAnyMember";
+	internal const	String	AllowBindToAnyMemberKey		= $"Flexy/Core/Binders/AllowBindToAnyMember";
+	internal const	String	AllowBindToNonPublicKey		= $"Flexy/Core/Binders/AllowBindToNonPublicMember";
+	
 	private			Type?	_bindType 			= null;
 		
 	public override void	OnGUI				( Rect position, SerializedProperty property, GUIContent label )	
@@ -51,13 +51,13 @@ public class BindSourceDrawer : PropertyDrawer
 		return 0;
 	}
 		
-	public static	void	UpdateMethods		( SerializedProperty componentProp, Type bindType, out List<Component> properties, out List<String> propertyNames, out String[] propertyNamesNice )					
+	public static	void	UpdateMethods		( SerializedProperty componentProp, Type bindType, out List<Object> properties, out List<String> propertyNames, out String[] propertyNamesNice )					
 	{
 		if (componentProp.propertyType != SerializedPropertyType.ObjectReference)
 		{ 
 			Debug.Log		( $"[BindSourcePropertyDrawer] - UpdateMethods: Unsupported Type: {componentProp.propertyType}" );
 
-			properties			= new List<Component>();
+			properties			= new List<Object>();
 			propertyNames		= new List<String>();
 			propertyNamesNice	= Array.Empty<String>();
 
@@ -66,34 +66,37 @@ public class BindSourceDrawer : PropertyDrawer
 
 		if (componentProp.objectReferenceValue == null)
 		{
-			properties			= new List<Component>();
+			properties			= new List<Object>();
 			propertyNames		= new List<String>();
 			propertyNamesNice	= Array.Empty<String>();
 		}
 		else
 		{
 			var obj				= ((Component)componentProp.objectReferenceValue).gameObject;
-			properties			= new List<Component>( );
+			properties			= new List<Object>( );
 			propertyNames		= new List<String>( );
 			propertyNamesNice	= Array.Empty<String>();
 			var propertyNamesNiceList	= new List<String>();
 
-			foreach (var component in obj.GetComponents<MonoBehaviour>())
+			var allTargets = obj.GetComponents<Component>().Cast<Object>().Prepend(obj).ToList();
+
+			foreach (var component in allTargets)
 			{
 				if (!component)
 					continue;
 					
 				var seenTypes = new HashSet<Type>();
-				var allowBindToAnyMemberKey = EditorPrefs.GetBool(AllowBindToAnyMemberKey, false);
+				var allowBindToAnyMember = EditorPrefs.GetBool(AllowBindToAnyMemberKey, false);
+				var allowBindToNonPublic = EditorPrefs.GetBool(AllowBindToNonPublicKey, false);
 				
-				GetMethodsFromObj(seenTypes, 1, component, component.GetType(), "", bindType, !allowBindToAnyMemberKey, properties, propertyNames, propertyNamesNiceList);
+				GetMethodsFromObj(seenTypes, 1, component, component.GetType(), "", bindType, !allowBindToAnyMember, !allowBindToNonPublic, properties, propertyNames, propertyNamesNiceList);
 				propertyNamesNice = propertyNamesNiceList.ToArray();
 			}
 		}
 	}
-	public static	void	GetMethodsFromObj	( HashSet<Type> seenTypes, int level, Component component, Type? objType, String propPrefix, Type bindType, Boolean onlyBindable, List<Component> properties, List<String> propertyNames, List<String> niceNames )												
+	public static	void	GetMethodsFromObj	( HashSet<Type> seenTypes, int level, Object component, Type? objType, String propPrefix, Type bindType, Boolean onlyBindable, Boolean onlyPublic, List<Object> properties, List<String> propertyNames, List<String> niceNames )												
 	{
-		if (level >= 3 || objType == null || objType == typeof(Object))
+		if (level >= 3 || objType == null || objType == typeof(Object) || objType == typeof(Component))
 			return;
 		
 		var type = objType;
@@ -102,10 +105,18 @@ public class BindSourceDrawer : PropertyDrawer
 			if (!seenTypes.Add(type))
 				break;
 
+			if (type == typeof(Component))
+				break;
+
 			foreach (var propertyInfo in type!.GetProperties( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ))
 			{
 				var typeProviderMemberName = default(String);
 			
+				var isObsolete = propertyInfo.IsDefined(typeof(ObsoleteAttribute));
+				
+				if (isObsolete)
+					continue;
+				
 				var attr = propertyInfo.GetCustomAttribute<BindableAttribute>(true);
 
 				if (attr != null)
@@ -114,13 +125,16 @@ public class BindSourceDrawer : PropertyDrawer
 				else if (onlyBindable)
 					continue;
 
+				if (onlyPublic && (!propertyInfo.GetMethod?.IsPublic ?? false) && attr == null)
+					continue;
+
 				if (bindType.IsAssignableFrom( propertyInfo.PropertyType ))
 				{
 					properties.Add		( component );
 					propertyNames.Add	( propPrefix + propertyInfo.Name );
-					niceNames.Add		( ObjectNames.NicifyVariableName( component.GetType().Name + ":  " + propPrefix + propertyInfo.Name ) );
+					niceNames.Add		( ObjectNames.NicifyVariableName( component.GetType().Name.Replace("_", "  ") + ":  " + propPrefix.Replace(".", " . ").Replace("  .  ", " . ") + propertyInfo.Name.Replace('_', ' ') ) );
 				}
-				else if (propertyInfo.PropertyType.IsClass && !propertyInfo.PropertyType.IsByRef)
+				else if (propertyInfo.PropertyType.IsClass && !propertyInfo.PropertyType.IsByRef && propertyInfo.CanRead && type.IsSubclassOf(typeof(MonoBehaviour)) && type != typeof(Component))
 				{
 					var memberName	= typeProviderMemberName;
 					var propType	= propertyInfo.PropertyType;
@@ -144,12 +158,12 @@ public class BindSourceDrawer : PropertyDrawer
 						}
 					}
 						
-					GetMethodsFromObj(seenTypes, level + 1, component, propType, propPrefix + propertyInfo.Name + ".", bindType, onlyBindable, properties, propertyNames, niceNames);
+					GetMethodsFromObj(seenTypes, level + 1, component, propType, propPrefix + propertyInfo.Name + ".", bindType, onlyBindable, onlyPublic, properties, propertyNames, niceNames);
 				}
 			}
 			type = type.BaseType;
 		}
-		while (type != null && type != typeof(Object));
+		while (type != null && type != typeof(Object) && type != typeof(Component));
 
 		type = objType;
 		do
@@ -157,14 +171,23 @@ public class BindSourceDrawer : PropertyDrawer
 			if (!seenTypes.Add(type))
 				break;
 		
-			foreach( var methodInfo in type.GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).Where( methodInfo => bindType.IsAssignableFrom( methodInfo.ReturnType ) && methodInfo.GetCustomAttributes( typeof(BindableAttribute), true ).Length > 0 ) )
+			foreach( var methodInfo in type.GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).Where( methodInfo => bindType.IsAssignableFrom( methodInfo.ReturnType )))
 			{
+				var isObsolete = methodInfo.IsDefined(typeof(ObsoleteAttribute));
+				var hasAttr = methodInfo.GetCustomAttribute<BindableAttribute>(true) == null;
+				if (isObsolete || onlyBindable && hasAttr)
+					continue;
+			
+				if (onlyPublic && !methodInfo.IsPublic && !hasAttr)
+					continue;
+			
 				properties.Add		( component );
 				propertyNames.Add	( propPrefix + methodInfo.Name );
 
 				var @params = methodInfo.GetParameters ();
-				var optionString = $"{objType.Name} . {methodInfo.Name} ({(@params.Length == 0 ? "" : @params[0].Name)})";
-				niceNames.Add( ObjectNames.NicifyVariableName( optionString ) );
+				var optionString = $"{component.GetType().Name.Replace("_", "  ") + ":  " + propPrefix.Replace(".", " . ").Replace("  .  ", " . ") + methodInfo.Name.Replace('_', ' ')} ({(@params.Length == 0 ? "" : @params[0].Name)})";
+				niceNames.Add	( ObjectNames.NicifyVariableName( optionString ) );
+				
 			}
 						
 			type = type.BaseType;
