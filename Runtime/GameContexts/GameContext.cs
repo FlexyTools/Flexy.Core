@@ -43,9 +43,9 @@ namespace Flexy.Core.GameContexts
 		private				Boolean				_isAlive;
 		private				IGameContextExtension?	_ext;
 		
-		private static readonly		Dictionary<Scene, GameContext>	_sceneToCtxLinks		= new();
-		private readonly			Dictionary<Type, Object>		_registeredServicesDict	= new();
-		private readonly			List<Object>					_registeredServicesList	= new();
+		private static readonly		Dictionary<Scene, List<GameContext>> _sceneToCtxLinks		= new();
+		private readonly			Dictionary<Type, Object>			_registeredServicesDict	= new();
+		private readonly			List<Object>						_registeredServicesList	= new();
 		
 		public static	GameContext		Global					=> _global.OrNull() is not null ? _global : _global = CreateGlobalContext();
 		public			GameContext?	Parent					=> _parent;
@@ -58,11 +58,22 @@ namespace Flexy.Core.GameContexts
 
 		public static 	GameContext		GetCtx					( Component c )		=> GetCtx( c.gameObject );
 		public static 	GameContext		GetCtx					( GameObject go )	=> GetCtx( go.scene );
-		public static 	GameContext		GetCtx					( Scene scene )		=> _sceneToCtxLinks.TryGetValue( scene, out var ctx ) ? ctx : Global;
+		public static 	GameContext		GetCtx					( Scene scene )		=> _sceneToCtxLinks.TryGetValue( scene, out var ctxList ) ? ctxList[^1] : Global;
 		public			void			LinkScene				( Scene scene )		
 		{
 			Debug.Log($"[GameCtx] {name} - Link scene: {scene.name}");
-			_sceneToCtxLinks[scene] = this;
+			
+			if (!scene.IsValid())
+			{
+				Debug.LogWarning($"[GameCtx] {name} - Trying to link invalid scene");
+				return;
+			}
+			
+			if (!_sceneToCtxLinks.TryGetValue(scene, out var ctxList))
+				_sceneToCtxLinks[scene] = ctxList = new List<GameContext>{Global};
+				
+			ctxList.Remove(this);
+			ctxList.Add(this);
 		}
 
 		protected		void			Awake					( )		
@@ -135,17 +146,21 @@ namespace Flexy.Core.GameContexts
 
 			_parent!._children.Remove(this);
 
-			foreach ( var pair in _sceneToCtxLinks.ToArray( ) )
-			{
-				if (pair.Value == this)
-					_sceneToCtxLinks[pair.Key] = _parent;
-			}
+			foreach (var pair in _sceneToCtxLinks)
+				pair.Value.Remove(this);
 		}
 
-		public			void			SetParent				( GameContext ctx )				
+		public			void			SetParent				( GameContext parent )				
 		{
-			_parent = ctx;
-			_ext?.SetParent(_parent);
+			_parent = parent;
+			_ext?.SetParent(parent);
+			
+			if (!parent.IsAlive)
+			{
+				// Force awake parent
+				parent.gameObject.SetActive(true);
+				parent.gameObject.SetActive(false);
+			}
 		}
 		public			T				GetService<T>			( ) where T : class				
 		{
@@ -374,29 +389,33 @@ namespace Flexy.Core.GameContexts
 			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] ClearSceneRegistration {scene.name}" );
 			_sceneToCtxLinks.Remove(scene);
 		}
-		private static 	void			LinkCreatedScene		( Scene oldScene, Scene newScene )				
+		private static 	void			LinkCreatedScene		( Scene oldScene, Scene newScene )
 		{
-			if (_sceneToCtxLinks.ContainsKey(oldScene) && !_sceneToCtxLinks.ContainsKey(newScene))
-            {
-				var ctx = _sceneToCtxLinks[oldScene];
-				Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {ctx.name} - Register created scene: {newScene.name}" );
-				ctx.LinkScene(newScene);
-			}
+			if (!_sceneToCtxLinks.ContainsKey(oldScene) || _sceneToCtxLinks.ContainsKey(newScene)) 
+				return;
+			
+			var ctx = _sceneToCtxLinks[oldScene][^1];
+			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {ctx.name} - Register created scene: {newScene.name}" );
+			ctx.LinkScene(newScene);
 		}
-		private static 	void			LinkSideLoadedScene		( Scene newScene, LoadSceneMode loadSceneMode )	
+		private static 	void			LinkSideLoadedScene		( Scene newScene, LoadSceneMode loadSceneMode )
 		{
-			if (!_sceneToCtxLinks.ContainsKey(newScene))
-			{
-				var scene	= SceneManager.GetActiveScene();
-				if (!_sceneToCtxLinks.TryGetValue(scene, out var ctx))
-				{
-					ctx = Global;
-					Debug.LogWarning( $"[GameCtx] [Frame:{Time.frameCount}] Register Side loaded scene: active scene {scene.name} not connected to Ctx!" );
-				}
+			if (_sceneToCtxLinks.ContainsKey(newScene)) 
+				return;
 				
-				Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {ctx.name} - Register Side loaded scene: {newScene.name}" );
-				ctx.LinkScene(newScene);
+			var ctx		= Global;
+			var scene	= SceneManager.GetActiveScene();
+			if (_sceneToCtxLinks.TryGetValue(scene, out var ctxList))
+			{
+				ctx = ctxList[^1];
 			}
+			else
+			{
+				Debug.LogWarning( $"[GameCtx] [Frame:{Time.frameCount}] Register Side loaded scene: active scene {scene.name} not connected to Ctx!" );
+			}
+				
+			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {ctx.name} - Register Side loaded scene: {newScene.name}" );
+			ctx.LinkScene(newScene);
 		}
 		#if FLEXY_ASSETREFS
 		private static 	void			LinkLoadedScene			( AssetRefs.LoadSceneTask loadSceneTask )		
@@ -456,7 +475,16 @@ namespace Flexy.Core.GameContexts
 					GUILayout.BeginVertical();
 
 					foreach (var pair in _sceneToCtxLinks)
-						GUILayout.Label( $"{pair.Key.name} => {pair.Value.name}" );
+					{
+						GUILayout.Label( $"{pair.Key.name} :" );
+						var isTop = true;
+						for (var i = pair.Value.Count - 1; i >= 0; i--)
+						{
+							var ctx = pair.Value[i];
+							GUILayout.Label( $"    {(isTop ? "■" : "□")} {ctx.name}" );
+							isTop = false;
+						}
+					}
 
 					GUILayout.EndVertical();
 				}
