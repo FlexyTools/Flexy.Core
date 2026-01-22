@@ -420,7 +420,9 @@ namespace Flexy.Core.GameContexts
 		#if FLEXY_ASSETREFS
 		private static 	void			LinkLoadedScene			( AssetRefs.LoadSceneTask loadSceneTask )		
 		{
-			GetCtx( loadSceneTask.Context ).LinkScene( loadSceneTask.Scene );
+			var go  = loadSceneTask.Context;
+			var ctx = go.TryGetComponent<GameContext>(out var gc) ? gc : GetCtx( loadSceneTask.Context ); 
+			ctx.LinkScene( loadSceneTask.Scene );
 		}
 		#endif
 
