@@ -78,6 +78,13 @@ namespace Flexy.Core.GameContexts
 
 		protected		void			Awake					( )		
 		{
+			// Awake parent Context before children in case if many contexts spawned
+            if (_parent != null && !_parent.IsAlive)
+            {
+            	_parent.gameObject.SetActive(true);
+            	_parent.gameObject.SetActive(false);
+            }
+			
 			_isAlive = true;
 			
 			_ext = GetComponent<IGameContextExtension>();
@@ -154,13 +161,6 @@ namespace Flexy.Core.GameContexts
 		{
 			_parent = parent;
 			_ext?.SetParent(parent);
-			
-			if (!parent.IsAlive)
-			{
-				// Force awake parent
-				parent.gameObject.SetActive(true);
-				parent.gameObject.SetActive(false);
-			}
 		}
 		public			T				GetService<T>			( ) where T : class				
 		{
