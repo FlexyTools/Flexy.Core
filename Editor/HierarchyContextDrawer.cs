@@ -58,6 +58,7 @@ public static class HierarchyContextDrawer
 
 		var labelRect = selectionRect;
 		labelRect.width -= 10;
+		labelRect.xMin = labelRect.xMax - 160;  
 		
 		if (_rightAlignedStyle == null)
 		{
