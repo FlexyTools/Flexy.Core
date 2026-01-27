@@ -23,9 +23,6 @@ public static class OpenInExplorerButton
 	}
 	#else
 	static OpenInExplorerButton(){ UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( "Open In Explorer", OnGUI, UnityEditorTopToolbar.EPlace.Right ); }
-	#endif
-	
-	
 	private static void		OnGUI			( )	
 	{
 #if UNITY_STANDALONE_OSX || UNITY_IOS || UNITY_TVOS
@@ -39,4 +36,5 @@ public static class OpenInExplorerButton
 			Application.OpenURL( Application.dataPath.Replace( "/Assets", "" ) );
 		}
 	}
+	#endif
 }

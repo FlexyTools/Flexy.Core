@@ -16,23 +16,33 @@ namespace Flexy.Core.Editor.ToolbarControls
 		[MainToolbarElement("Flexy/Project Name", defaultDockPosition = MainToolbarDockPosition.Left)]
 		public static MainToolbarElement CreateToolbarElement()
 		{
-			var type = typeof(MainToolbarButton).Assembly.GetType("UnityEditor.Toolbars.MainToolbarCustom", true);
-			var element = (MainToolbarElement)Activator.CreateInstance(type, (Func<VisualElement>)Creator);
+			var type	= typeof(MainToolbarButton).Assembly.GetType("UnityEditor.Toolbars.MainToolbarCustom", true);
+			var element	= (MainToolbarElement)Activator.CreateInstance(type, (Func<VisualElement>)Creator);
 			
 			return element;
 		}
 		#else
 		static ProjectNameLabel(){ UnityEditorTopToolbar.AddIMGUIContainerToLeftPocket( "ProjectName", OnToolbarGUI, UnityEditorTopToolbar.EPlace.Center ); }
+		
+		static	void	OnToolbarGUI	( )			
+		{
+			var style		= EditorStyles.label;
+			style.richText	= true;
+		
+			UpdateProjectName();
+		
+			if (EditorGUIUtility.isProSkin)
+				GUILayout.Label($"<size=16><color=#888888><b>{_lastProjectName}</b></color></size>", style);
+			else
+				GUILayout.Label($"<size=16><color=#000000><b>{_lastProjectName}</b></color></size>", style);
+		}
 		#endif
 
-		static Single _lastTimeCheck;
-		static String? _lastProjectName; 
+		static	Single	_lastTimeCheck;
+		static	String?	_lastProjectName;
 
-		static void OnToolbarGUI()
+		static void UpdateProjectName()
 		{
-			var style = EditorStyles.label;
-			style.richText = true;
-		
 			if (_lastProjectName == null || Time.realtimeSinceStartup > _lastTimeCheck && !EditorApplication.isPlaying)
 			{
 				_lastProjectName = Application.productName;
@@ -41,18 +51,20 @@ namespace Flexy.Core.Editor.ToolbarControls
 				if (File.Exists("UserSettings/ProjectName.txt"))
 					_lastProjectName = File.ReadAllText("UserSettings/ProjectName.txt");
 			} 
+		} 
 		
-			if (EditorGUIUtility.isProSkin)
-				GUILayout.Label($"<size=16><color=#888888><b>{_lastProjectName}</b></color></size>", style);
-			else
-				GUILayout.Label($"<size=16><color=#000000><b>{_lastProjectName}</b></color></size>", style);
-		}
-		
-		private static VisualElement Creator()
+		private static VisualElement Creator ( )	
 		{
-			var root = new VisualElement(){style = { flexGrow = 1, alignContent = Align.Center }};
-			root.Add(new IMGUIContainer(OnToolbarGUI){style = { flexGrow = 1, marginLeft = 50, marginRight = 50}});
-			return root;
+			UpdateProjectName();
+			var label = new Label
+			{
+				name = "ProjectNameLabel", style = { fontSize = 16},
+				text = _lastProjectName
+			};
+
+			label.schedule.Execute( () => {UpdateProjectName(); label.text = _lastProjectName;} ).Every(2_000);
+
+			return label;
 		}
 	}
 }

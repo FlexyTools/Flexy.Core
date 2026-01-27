@@ -32,11 +32,11 @@ public static class TimescaleControl
 	{
 		GUILayout.BeginHorizontal( GUILayout.MaxWidth(300), GUILayout.Height(14) );
 		{
-			GUILayout.Label( "Timescale" );
+			GUILayout.Label( "Ts:" );
 			
 			var x = (Single)Math.Log10(Time.timeScale); 
 			
-			var newval = GUILayout.HorizontalSlider( x, -3, 2, GUILayout.MaxWidth(200), GUILayout.ExpandWidth(true) );
+			var newval = GUILayout.HorizontalSlider( x, -3, 2, GUILayout.MinWidth(50), GUILayout.ExpandWidth(true) );
 			
 			if( !Mathf.Approximately(newval, x) )
 				Time.timeScale = (Single)Math.Pow(10, newval); 
