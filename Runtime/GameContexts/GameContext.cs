@@ -148,6 +148,9 @@ namespace Flexy.Core.GameContexts
 			
 			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {name} - OnDestroy \t parent:{_parent}", this );
 			
+			if (_global == this)
+				StaticClear();
+			
 			if (!_parent)
 				return;
 
