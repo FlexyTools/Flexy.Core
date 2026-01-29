@@ -148,6 +148,9 @@ namespace Flexy.Core.GameContexts
 			
 			Debug.Log( $"[GameCtx] [Frame:{Time.frameCount}] {name} - OnDestroy \t parent:{_parent}", this );
 			
+			foreach (var pair in _sceneToCtxLinks)
+				pair.Value.Remove(this);
+			
 			if (_global == this)
 				StaticClear();
 			
@@ -155,9 +158,6 @@ namespace Flexy.Core.GameContexts
 				return;
 
 			_parent!._children.Remove(this);
-
-			foreach (var pair in _sceneToCtxLinks)
-				pair.Value.Remove(this);
 		}
 
 		public			void			SetParent				( GameContext parent )				
