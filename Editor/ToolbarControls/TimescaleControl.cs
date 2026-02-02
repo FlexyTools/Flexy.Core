@@ -12,7 +12,7 @@ namespace Flexy.Core.Editor.ToolbarControls;
 public static class TimescaleControl
 {
 	#if UNITY_6000_3_OR_NEWER
-	[MainToolbarElement("Flexy/Timescale", defaultDockPosition = MainToolbarDockPosition.Middle)]
+	[MainToolbarElement("Flexy/Time Scale", defaultDockPosition = MainToolbarDockPosition.Middle)]
 	public static MainToolbarElement CreateToolbarElement	( )	
 	{
 		var type = typeof(MainToolbarButton).Assembly.GetType("UnityEditor.Toolbars.MainToolbarCustom", true);
@@ -20,19 +20,51 @@ public static class TimescaleControl
 			
 		return element;
 	}
-	#else
-	static TimescaleControl( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( "Timescale", OnTestRunGUI, UnityEditorTopToolbar.EPlace.Center ); }
-	#endif
 	
 	private static VisualElement	Creator			( )		
 	{
-		return new IMGUIContainer(OnTestRunGUI){style = { marginLeft = 10, marginRight = 10}};
+		var element	= new VisualElement {style = {flexDirection = FlexDirection.Row}};
+		var slider	= new TimescaleSlider();
+		var button	= new EditorToolbarButton("R", () => Time.timeScale = 1);
+		
+		element.Add(slider);
+		element.Add(button);
+		
+		return element;
 	}
+
+	private class TimescaleSlider : EditorToolbarSlider
+	{
+		public TimescaleSlider(): base("Time Scale", default, -3, 2) 
+		{
+			_label = (Label)this[0][1][3];
+			schedule.Execute( () => SetValueWithoutNotify((Single)Math.Log10(Time.timeScale)) ).Every(500); 
+		}
+
+		private readonly Label _label;
+
+		public override void SetValueWithoutNotify( Single newval )	
+		{
+			base.SetValueWithoutNotify(newval);
+			
+			var ts = Time.timeScale = (Single)Math.Pow(10, newval);
+				
+			switch (ts)
+			{
+				case >= 10:		_label.text = $"x{Math.Round(ts):F0}";			break;
+				case >= 3:		_label.text = $"x{Math.Round(ts*10)/10f:F1}";	break;
+				case > 0.01f:	_label.text = $"x{Time.timeScale:F2}";			break;
+				default:		_label.text = $"x{Time.timeScale:F3}";			break;
+			}
+		}
+	}
+	#else
+	static TimescaleControl( ) { UnityEditorTopToolbar.AddIMGUIContainerToRightPocket( "Time Scale", OnTestRunGUI, UnityEditorTopToolbar.EPlace.Center ); }
 	private static void				OnTestRunGUI	( )		
 	{
 		GUILayout.BeginHorizontal( GUILayout.MaxWidth(300), GUILayout.Height(14) );
 		{
-			GUILayout.Label( "Ts:" );
+			GUILayout.Label( "Time Scale:" );
 			
 			var x = (Single)Math.Log10(Time.timeScale); 
 			
@@ -69,4 +101,5 @@ public static class TimescaleControl
 		}
 		GUILayout.EndHorizontal( );
 	}
+	#endif
 }

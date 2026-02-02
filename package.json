@@ -1,7 +1,7 @@
 {
   "name": "fun.flexy.core",
   "displayName": "Flexy Core",
-  "version": "6.0.6",
+  "version": "6.1.0",
   "unity": "2022.3",
   "description": "Core package of Flexy.Framework that every other package depends on. It is Glue fo Flexy.Framework and based on Flexy.Briks\"ToYs architecture",
   "documentationUrl": "https://github.com/FlexyTools/Flexy.Docs/tree/main/Framework/Flexy.Core",
