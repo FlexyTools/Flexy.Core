@@ -47,7 +47,8 @@ namespace Flexy.Core.GameContexts
 		private readonly			Dictionary<Type, Object>			_registeredServicesDict	= new();
 		private readonly			List<Object>						_registeredServicesList	= new();
 		
-		public static	GameContext		Global					=> _global.OrNull() is not null ? _global : _global = CreateGlobalContext();
+		public static	Boolean			IsGlobalAlive			=> _global.OrNull() is not null;
+		public static	GameContext		Global					=> IsGlobalAlive ? _global : _global = CreateGlobalContext();
 		public			GameContext?	Parent					=> _parent;
 		public	IGameContextExtension?	Ext						=> _ext;
 		public	Boolean					IsAlive					=> _isAlive;

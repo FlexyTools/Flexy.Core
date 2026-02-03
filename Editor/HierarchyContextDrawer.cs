@@ -18,7 +18,7 @@ public static class HierarchyContextDrawer
 	
 	private static void OnHierarchyGUI( Int32 instanceID, Rect selectionRect )
 	{
-		if (!EditorApplication.isPlaying)
+		if (!EditorApplication.isPlaying || !GameContexts.GameContext.IsGlobalAlive)
 			return;
 	
 		Scene scene = default;
