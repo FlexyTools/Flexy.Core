@@ -4,6 +4,7 @@
     "references": [
         "UniTaskEmbed",
         "UniTask",
+        "Flexy.Log",
         "Flexy.AssetRefs",
         "Unity.Services.Core"
     ],
@@ -22,8 +23,13 @@
         },
         {
             "name": "fun.flexy.assetrefs",
-            "expression": "5",
+            "expression": "6",
             "define": "FLEXY_ASSETREFS"
+        },
+        {
+            "name": "fun.flexy.log",
+            "expression": "6",
+            "define": "FLEXY_LOG"
         }
     ],
     "noEngineReferences": false

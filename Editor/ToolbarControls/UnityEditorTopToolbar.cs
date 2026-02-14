@@ -1,9 +1,3 @@
-using System;
-using System.Reflection;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.UIElements;
-
 namespace Flexy.Core.Editor.ToolbarControls
 {
 	#if !UNITY_6000_3_OR_NEWER

@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
-using UnityEditor.SceneManagement;
+﻿using UnityEditor.SceneManagement;
 #if UNITY_6000_3_OR_NEWER
 using UnityEditor.Toolbars;
 #endif
-using UnityEngine;
-using UnityEngine.UIElements;
-using Object = System.Object;
 
 namespace Flexy.Core.Editor.ToolbarControls;
 
@@ -107,7 +100,7 @@ public static class TestCaseDropdown
 			menu.ShowAsContext();
 		}
 		
-		static void		SetTestRunName	( Object userdata )
+		static void		SetTestRunName	( object? userdata )
 		{
 			if (userdata == null)
 			{

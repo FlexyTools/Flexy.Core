@@ -1,8 +1,3 @@
-using System;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-
 namespace Flexy.Core.Editor;
 
 [InitializeOnLoad]

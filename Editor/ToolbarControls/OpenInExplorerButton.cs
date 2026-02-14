@@ -1,8 +1,6 @@
-﻿using UnityEditor;
-#if UNITY_6000_3_OR_NEWER
+﻿#if UNITY_6000_3_OR_NEWER
 using UnityEditor.Toolbars;
 #endif
-using UnityEngine;
 
 namespace Flexy.Core.Editor.ToolbarControls;
 

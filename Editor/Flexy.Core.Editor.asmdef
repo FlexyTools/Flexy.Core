@@ -3,9 +3,10 @@
     "rootNamespace": "Flexy.Core",
     "references": [
         "UniTask",
-		"UniTaskEmbed",
-		"Flexy.Core",
-        "Flexy.AssetRefs"
+        "UniTaskEmbed",
+        "Flexy.Core",
+        "Flexy.AssetRefs",
+        "Flexy.Log"
     ],
     "includePlatforms": [
         "Editor"
@@ -16,6 +17,12 @@
     "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "fun.flexy.log",
+            "expression": "6",
+            "define": "FLEXY_LOG"
+        }
+    ],
     "noEngineReferences": false
 }

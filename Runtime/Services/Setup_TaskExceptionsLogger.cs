@@ -4,7 +4,7 @@ namespace Flexy.Core.Services
 	{
 		public void OrderedInit(GameContext ctx)
 		{
-			UniTaskScheduler.UnobservedTaskException += Debug.LogException;		
+			UniTaskScheduler.UnobservedTaskException += UnityEngine.Debug.LogException;		
 		}
 	}
 }

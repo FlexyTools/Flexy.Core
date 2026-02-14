@@ -1,17 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using Cysharp.Threading.Tasks;
-using Flexy.Core.Binding;
-using UnityEditor;
-using UnityEditor.UIElements;
-using UnityEngine;
-using UnityEngine.UIElements;
-using Object = UnityEngine.Object;
-
-namespace Flexy.Core.Editor.Binding
+﻿namespace Flexy.Core.Editor.Binding
 {
 	[CustomEditor(typeof(CallBinder), true), CanEditMultipleObjects]
 	public class CallBinderEditor : UnityEditor.Editor 

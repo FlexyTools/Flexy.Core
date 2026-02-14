@@ -77,7 +77,7 @@ namespace Flexy.Core.Binding
 		
 			try
 			{
-				Object? objToBindTo	= bindSource.Component;
+				object? objToBindTo	= bindSource.Component;
 				var type			= objToBindTo.GetType();
 				var memberName		= bindSource.MemberName; 
                 
@@ -147,7 +147,7 @@ namespace Flexy.Core.Binding
         
             try
             {
-	            Object? objToBindTo	= bindSource.Component;
+	            object? objToBindTo	= bindSource.Component;
                 var type			= objToBindTo.GetType();
                 var memberName		= bindSource.MemberName; 
                 
@@ -234,7 +234,7 @@ namespace Flexy.Core.Binding
 			SafeBind	();
 		}
 
-		private					Func<TResult>	BindGetterMethod<TResult>			( Object target, MethodInfo method, String parameters )	
+		private					Func<TResult>	BindGetterMethod<TResult>			( object target, MethodInfo method, String parameters )	
 		{
 			var @params = method.GetParameters();
 			switch( @params.Length )
@@ -336,7 +336,7 @@ namespace Flexy.Core.Binding
 
 			return null!;
 		}
-		private					Func<TResult>	CreateGetDelegate<TParam,TResult>	( Object target, MethodInfo method, TParam param )		
+		private					Func<TResult>	CreateGetDelegate<TParam,TResult>	( object target, MethodInfo method, TParam param )		
 		{
 			if ( !method.ReturnType.IsEnum )
 				return new OneParamBind<TParam,TResult>( param, (Func<TParam, TResult>)Delegate.CreateDelegate( typeof(Func<TParam, TResult>), target, method ) ).GetValue;
@@ -391,7 +391,7 @@ namespace Flexy.Core.Binding
 			}
 			#endif
 		}
-		private					Action<TArg>	BindSetterMethod<TArg>				( Object target, MethodInfo method, String parameters )	
+		private					Action<TArg>	BindSetterMethod<TArg>				( object target, MethodInfo method, String parameters )	
 		{
 			var @params = method.GetParameters();
 

@@ -1,6 +1,3 @@
-using Flexy.Core.Binding;
-using UnityEditor;
-
 namespace Flexy.Core.Editor.Binding;
 
 [CustomEditor(typeof(Binder), true)]

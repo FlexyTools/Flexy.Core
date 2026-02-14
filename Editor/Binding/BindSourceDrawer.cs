@@ -1,15 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using Flexy.Core.Binding;
-using UnityEditor;
-using UnityEngine;
-using Binder = Flexy.Core.Binding.Binder;
-using Object = UnityEngine.Object;
-
-namespace Flexy.Core.Editor.Binding;
+﻿namespace Flexy.Core.Editor.Binding;
 
 [CustomPropertyDrawer(typeof(Binder.BindSource), true)]
 public class BindSourceDrawer : PropertyDrawer

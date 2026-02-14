@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Flexy.Core.Editor.Binding;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.UIElements;
 
-namespace Flexy.Core.Editor.ToolbarControls;
+namespace Flexy.Core.Editor;
 
 public class Preferences : SettingsProvider
 {
