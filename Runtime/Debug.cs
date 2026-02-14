@@ -1,4 +1,4 @@
-#if !FLEXY_LOG
+#if FLEXY_LOG
 
 global using Debug = Flexy.Log.Debug;
 
@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 namespace Flexy.Core;
 
-public static class Debug
+internal static class Debug
 {
 	public static				Boolean		isDebugBuild	=> UnityEngine.Debug.isDebugBuild;
 
