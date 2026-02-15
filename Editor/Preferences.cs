@@ -1,4 +1,5 @@
 using Flexy.Core.Editor.Binding;
+using Flexy.Core.Editor.ToolbarControls;
 
 namespace Flexy.Core.Editor;
 
