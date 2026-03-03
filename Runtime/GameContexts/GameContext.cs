@@ -76,6 +76,19 @@ namespace Flexy.Core.GameContexts
 			ctxList.Remove(this);
 			ctxList.Add(this);
 		}
+		public			void			UnlinkScene				( Scene scene )		
+		{
+			Debug.Log($"[GameCtx] {name} - Unlink scene: {scene.name}");
+			
+			if (!scene.IsValid())
+			{
+				Debug.LogWarning($"[GameCtx] {name} - Trying to unlink invalid scene");
+				return;
+			}
+			
+			if (_sceneToCtxLinks.TryGetValue(scene, out var ctxList))
+				ctxList.Remove(this);
+		}
 
 		protected		void			Awake					( )		
 		{
