@@ -28,7 +28,7 @@ internal static class Debug
 			return String.Empty;
 
 		return context 
-			? $"[{Path.GetFileNameWithoutExtension(filePath)}] {context.name} - {memberName}: {str}    at    <color=#cccccc>line {lineNumber}</color>" 
+			? $"[{Path.GetFileNameWithoutExtension(filePath)}] {context!.name} - {memberName}: {str}    at    <color=#cccccc>line {lineNumber}</color>" 
 			: $"[{Path.GetFileNameWithoutExtension(filePath)}] {memberName}: {str}    at    <color=#cccccc>line {lineNumber}</color>";
 	}
 }
