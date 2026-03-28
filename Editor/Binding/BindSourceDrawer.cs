@@ -333,7 +333,7 @@ public class BindSourceDrawer : PropertyDrawer
 							paramsProp.stringValue = "";
 						}
 					}
-					catch (FormatException fe)
+					catch (FormatException)
 					{
 						paramsProp.stringValue = "";
 					}

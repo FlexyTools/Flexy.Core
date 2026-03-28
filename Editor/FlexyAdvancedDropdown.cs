@@ -40,7 +40,11 @@ namespace Flexy.Core.Editor
 
 	            foreach ( var part in nameParts )
 	            {
+					#if UNITY_6000_5_OR_NEWER
+		            var item = currentDepathItem.childList.FirstOrDefault( c => c.ToString().Equals( part ) );
+		            #else
 		            var item = currentDepathItem.children.FirstOrDefault( c => c.ToString().Equals( part ) );
+		            #endif
 		            
 		            if( item == null )
 					{
@@ -57,16 +61,37 @@ namespace Flexy.Core.Editor
 
             CleanupHierarchy( root );
             
+			#if UNITY_6000_5_OR_NEWER
             // Add empty items to make drop dawn height adequate
+            while( root.childList.Count() < 24 )
+			{
+				root.AddChild( new( "" ){ id = -1} );
+			}
+			#else
+			// Add empty items to make drop dawn height adequate
             while( root.children.Count() < 24 )
 			{
 				root.AddChild( new( "" ){ id = -1} );
 			}
+			#endif
 
             return root;
             
             static void CleanupHierarchy( AdvancedDropdownItem node )
             {
+				#if UNITY_6000_5_OR_NEWER
+	            var children = (List<AdvancedDropdownItem>)node.childList;
+				
+	            while( children.Count == 1 && children[0].childList.Any( ) )
+	            {
+		            // crop single nested node
+		            var child = children[0];
+		            GetContent( node ).text += "." + child.name;
+		            
+		            children.Clear( );
+		            children.AddRange( child.childList );
+	            }
+				#else
 	            var children = (List<AdvancedDropdownItem>)node.children;
 				
 	            while( children.Count == 1 && children[0].children.Any( ) )
@@ -78,6 +103,7 @@ namespace Flexy.Core.Editor
 		            children.Clear( );
 		            children.AddRange( child.children );
 	            }
+				#endif
 	            
 	            foreach (var child in children)
 	            {
