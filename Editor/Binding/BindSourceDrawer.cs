@@ -88,7 +88,9 @@ public class BindSourceDrawer : PropertyDrawer
 		if (level >= 3 || objType == null || objType == typeof(Object) || objType == typeof(Component))
 			return;
 		
-		var type = objType;
+		var groupName	= String.Empty;
+		var type		= objType;
+		
 		do
 		{
 			if (!seenTypes.Add(type))
@@ -100,7 +102,6 @@ public class BindSourceDrawer : PropertyDrawer
 			foreach (var propertyInfo in type!.GetProperties( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ))
 			{
 				var typeProviderMemberName = default(String);
-			
 				var isObsolete = propertyInfo.IsDefined(typeof(ObsoleteAttribute));
 				
 				if (isObsolete)
@@ -121,7 +122,13 @@ public class BindSourceDrawer : PropertyDrawer
 				{
 					properties.Add		( component );
 					propertyNames.Add	( propPrefix + propertyInfo.Name );
-					niceNames.Add		( ObjectNames.NicifyVariableName( component.GetType().Name.Replace("_", "  ") + ":  " + propPrefix.Replace(".", " . ").Replace("  .  ", " . ") + propertyInfo.Name.Replace('_', ' ') ) );
+					var groupAttr		= propertyInfo.GetCustomAttribute<BindableGroupAttribute>(true);
+					
+					if (groupAttr != null)
+						groupName = groupAttr.GroupName;
+						
+					var memberName	= propertyInfo.Name.Replace('_', ' ');
+					niceNames.Add	( GetNiceMemberName( groupName, component.GetType().Name, propPrefix, memberName ) );
 				}
 				else if (propertyInfo.PropertyType.IsClass && !propertyInfo.PropertyType.IsByRef && propertyInfo.CanRead && type.IsSubclassOf(typeof(MonoBehaviour)) && type != typeof(Component))
 				{
@@ -154,13 +161,14 @@ public class BindSourceDrawer : PropertyDrawer
 		}
 		while (type != null && type != typeof(Object) && type != typeof(Component));
 
+		var seenMethodTypes = new HashSet<Type>();
 		type = objType;
 		do
 		{
-			if (!seenTypes.Add(type))
+			if (!seenMethodTypes.Add(type))
 				break;
 		
-			foreach( var methodInfo in type.GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).Where( methodInfo => bindType.IsAssignableFrom( methodInfo.ReturnType )))
+			foreach (var methodInfo in type.GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ).Where( methodInfo => bindType.IsAssignableFrom( methodInfo.ReturnType )))
 			{
 				var isObsolete = methodInfo.IsDefined(typeof(ObsoleteAttribute));
 				var hasAttr = methodInfo.GetCustomAttribute<BindableAttribute>(true) == null;
@@ -173,9 +181,15 @@ public class BindSourceDrawer : PropertyDrawer
 				properties.Add		( component );
 				propertyNames.Add	( propPrefix + methodInfo.Name );
 
-				var @params = methodInfo.GetParameters ();
-				var optionString = $"{component.GetType().Name.Replace("_", "  ") + ":  " + propPrefix.Replace(".", " . ").Replace("  .  ", " . ") + methodInfo.Name.Replace('_', ' ')} ({(@params.Length == 0 ? "" : @params[0].Name)})";
-				niceNames.Add	( ObjectNames.NicifyVariableName( optionString ) );
+				var @params		= methodInfo.GetParameters ();
+				var groupAttr	= methodInfo.GetCustomAttribute<BindableGroupAttribute>(true);
+				
+				if (groupAttr != null)
+					groupName = groupAttr.GroupName;
+					
+				var memberName		= methodInfo.Name.Replace('_', ' ');
+				var parameterName	= @params.Length == 0 ? "" : @params[0].Name;
+				niceNames.Add		( GetNiceMemberName( groupName, component.GetType().Name, propPrefix, $"{memberName} ({parameterName})" ) );
 				
 			}
 						
@@ -232,9 +246,14 @@ public class BindSourceDrawer : PropertyDrawer
 				UpdateMethods( property.FindPropertyRelative( "Component" ), bindType, out var properties, out var propertyNames, out var propertyNamesNice );
 							
 				var menu = new GenericMenu();
+				var hasGroups = propertyNamesNice.Any(name => name.Contains('/'));
+				Object? previousComponent = null;
 				for (var i = 0; i < propertyNamesNice.Length; i++)
 				{
 					var idx = i;
+					if (hasGroups && previousComponent != null && previousComponent != properties[idx])
+						menu.AddSeparator("");
+					previousComponent = properties[idx];
 					menu.AddItem(new GUIContent(propertyNamesNice[i]), /*idx == index*/false, () =>
 					{
 						Undo.RecordObjects(property.serializedObject.targetObjects, "Target Property Changed");
@@ -364,5 +383,12 @@ public class BindSourceDrawer : PropertyDrawer
 		{
 			EditorGUILayout.HelpBox(errorString, MessageType.Error);
 		}
+	}
+	
+	private static	String	GetNiceMemberName	( String groupName, String componentName, String propPrefix, String memberName )	
+	{
+		var componentPrefix = componentName.Replace("_", "  ") + ":  " + propPrefix.Replace(".", " . ").Replace("  .  ", " . ");
+		var path = String.IsNullOrWhiteSpace(groupName) ? componentPrefix + memberName : componentPrefix + groupName + "/" + memberName;
+		return ObjectNames.NicifyVariableName(path);
 	}
 }
